@@ -7,7 +7,9 @@ import { MailService } from './MailService';
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
 export class AuthService {
-  private userRepository = AppDataSource.getRepository(User);
+  private get userRepository() {
+    return AppDataSource.getRepository(User);
+  }
   private mailService = new MailService();
 
   async register(userData: any) {

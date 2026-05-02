@@ -4,6 +4,8 @@ import { DataSource } from 'typeorm';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Entidades
 import { User } from './entities/User';
 import { Team } from './entities/Team';
@@ -31,8 +33,10 @@ export const AppDataSource = new DataSource({
   synchronize: true, // ¡Solo para desarrollo! Crea las tablas automáticamente
   logging: true,
   entities: [User, Team, Tournament, Fixture, Match, Prediction, PredictionDetail],
-  ssl: {
-    rejectUnauthorized: false // Requerido para Supabase en modo desarrollo
+  extra: {
+    ssl: {
+      rejectUnauthorized: false
+    }
   }
 });
 

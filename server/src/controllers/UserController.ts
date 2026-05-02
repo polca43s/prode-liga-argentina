@@ -5,7 +5,7 @@ import { User } from '../entities/User';
 
 const router = Router();
 const authService = new AuthService();
-const userRepository = AppDataSource.getRepository(User);
+const getUserRepository = () => AppDataSource.getRepository(User);
 
 // Registro de usuario
 router.post('/register', async (req: Request, res: Response) => {
@@ -35,7 +35,7 @@ router.post('/login', async (req: Request, res: Response) => {
 // Obtener todos los usuarios (Solo Admin - Implementar middleware de auth después)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const users = await userRepository.find();
+    const users = await getUserRepository().find();
     res.json(users);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
