@@ -67,7 +67,7 @@ router.post('/', authMiddleware, async (req: any, res: Response) => {
     getPredictionRepository().findOne({
       where: { id: prediction.id },
       relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
-    }).then(fullPrediction => {
+    }).then((fullPrediction: any) => {
       if (fullPrediction) {
         mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
       }
@@ -84,7 +84,7 @@ router.get('/my/:fixtureId', authMiddleware, async (req: any, res: Response) => 
   try {
     const { fixtureId } = req.params;
     const userId = req.user.id; // Extraído del token
-    
+
     const prediction = await getPredictionRepository().findOne({
       where: { user: { id: userId as string }, fixture: { id: fixtureId as string } },
       relations: ['detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
@@ -199,7 +199,7 @@ router.get('/ranking/tournament/:tournamentId', async (req: Request, res: Respon
 router.post('/recalculate/:tournamentId', async (req: Request, res: Response) => {
   try {
     const { tournamentId } = req.params;
-    
+
     // 1. Obtener Tournament para el nombre
     const tournament = await AppDataSource.getRepository(Tournament).findOneBy({ id: tournamentId as string });
     if (!tournament) return res.status(404).json({ message: 'Torneo no encontrado' });
@@ -253,7 +253,7 @@ router.post('/recalculate/:tournamentId', async (req: Request, res: Response) =>
     const standingRepo = AppDataSource.getRepository(Standing);
     for (const uid of Object.keys(userStats)) {
       const stat = userStats[uid];
-      
+
       // Calcular fechas ganadas
       let fGanadas = 0;
       Object.keys(stat.fixtureScores).forEach(fid => {
@@ -263,12 +263,12 @@ router.post('/recalculate/:tournamentId', async (req: Request, res: Response) =>
       });
 
       const standingId = `${tournament.nombre}-${stat.user.nickname}`;
-      
+
       let standing = await standingRepo.findOneBy({ id: standingId });
       if (!standing) {
-        standing = standingRepo.create({ 
-          id: standingId, 
-          tournament, 
+        standing = standingRepo.create({
+          id: standingId,
+          tournament,
           user: stat.user,
           tournamentName: tournament.nombre,
           nickname: stat.user.nickname

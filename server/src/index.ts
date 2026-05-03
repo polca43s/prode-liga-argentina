@@ -63,5 +63,5 @@ AppDataSource.initialize()
       console.log(`Servidor PRODE corriendo en ${host}:${PORT}`);
     });
   })
-  .catch((error) => console.log('Error conectando a la base de datos:', error));
+  .catch((error: any) => console.log('Error conectando a la base de datos:', error));
 // Última actualización: 2026-05-03 - Forzando reinicio global de la aplicación
