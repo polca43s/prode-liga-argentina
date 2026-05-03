@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/users';
+  private apiUrl = 'http://localhost:3001/api/users';
   
   currentUser = signal<any>(null);
   token = signal<string | null>(localStorage.getItem('token'));
@@ -41,5 +41,9 @@ export class AuthService {
 
   isAdmin() {
     return this.currentUser()?.tipo === 'ADMIN';
+  }
+
+  getCurrentUser() {
+    return this.currentUser();
   }
 }

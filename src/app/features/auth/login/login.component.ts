@@ -44,9 +44,9 @@ import { Router, RouterLink } from '@angular/router';
           </button>
 
           <div class="auth-links">
-            <a routerLink="/auth/password-recovery" class="link-muted">¿Olvidaste tu contraseña?</a>
+            <a routerLink="/password-recovery" class="link-muted">¿Olvidaste tu contraseña?</a>
             <hr class="divider">
-            <p>¿No tienes cuenta? <a routerLink="/auth/register" class="link-primary">Regístrate</a></p>
+            <p>¿No tienes cuenta? <a routerLink="/register" class="link-primary">Regístrate</a></p>
           </div>
         </form>
 
@@ -149,8 +149,13 @@ export class LoginComponent {
     this.error = '';
     
     this.authService.login(this.credentials).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
+      next: (response: any) => {
+        // Redirección basada en el rol
+        if (response.user.tipo === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/resultados']);
+        }
       },
       error: (err) => {
         this.error = err.error?.message || 'Error al iniciar sesión';

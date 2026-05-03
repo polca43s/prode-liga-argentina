@@ -1,0 +1,153 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { TournamentService } from '../../../core/services/tournament.service';
+import { FixtureService } from '../../../core/services/fixture.service';
+import { PredictionService } from '../../../core/services/prediction.service';
+import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
+
+@Component({
+  selector: 'app-match-results',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  template: `
+    <div class="manager-container">
+      <div class="glass-card manager-card">
+        <header class="manager-header">
+          <div class="header-left">
+            <button routerLink="/admin" class="btn-back">⬅ Volver</button>
+            <h1>🏁 Cargar Resultados Reales</h1>
+          </div>
+          <div class="selectors">
+            <select [(ngModel)]="selectedTournamentId" (change)="onTournamentChange()">
+              <option value="" disabled>Torneo...</option>
+              <option *ngFor="let t of tournaments" [value]="t.id">{{ t.nombre }}</option>
+            </select>
+            <select [(ngModel)]="selectedFixtureId" (change)="onFixtureChange()" *ngIf="selectedTournamentId">
+              <option value="" disabled>Fecha...</option>
+              <option *ngFor="let f of fixtures" [value]="f.id">{{ f.nombre }}</option>
+            </select>
+            <button *ngIf="selectedFixtureId" (click)="deleteFixture()" class="btn-danger-outline small">
+              🗑️ Borrar Fecha
+            </button>
+          </div>
+        </header>
+
+        <div class="fixture-status-bar" *ngIf="currentFixture">
+          <div class="visibility-toggle">
+            <label class="switch">
+              <input type="checkbox" [checked]="currentFixture.seeAll" (change)="toggleSeeAll()">
+              <span class="slider round"></span>
+            </label>
+            <span class="status-label" [class.locked]="currentFixture.seeAll">
+              {{ currentFixture.seeAll ? '🔒 Fecha Cerrada' : '🔓 Fecha por Jugar' }}
+            </span>
+          </div>
+          <p class="status-desc">
+            {{ currentFixture.seeAll ? 'Los usuarios ya no pueden editar sus jugadas.' : 'Los usuarios aún pueden editar sus jugadas.' }}
+          </p>
+        </div>
+
+        <div *ngIf="currentFixture" class="results-table">
+          <div class="table-header">
+            <span>Partido</span>
+            <span>Resultado Final</span>
+          </div>
+
+          <div *ngFor="let match of currentFixture.partidos" class="result-row">
+            <div class="match-info">
+              <img [src]="match.local?.escudo" class="escudo">
+              <span class="team-name">{{ match.local?.nombre }}</span>
+              <span class="vs">VS</span>
+              <span class="team-name">{{ match.visitante?.nombre }}</span>
+              <img [src]="match.visitante?.escudo" class="escudo">
+            </div>
+
+            <div class="result-buttons">
+              <button [class.active]="match.resultado === 'L'" (click)="setResult(match, 'L')">L</button>
+              <button [class.active]="match.resultado === 'E'" (click)="setResult(match, 'E')">E</button>
+              <button [class.active]="match.resultado === 'V'" (click)="setResult(match, 'V')">V</button>
+              <button class="btn-clear" (click)="setResult(match, null)" *ngIf="match.resultado">✖</button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button (click)="saveAllResults()" class="btn-primary w-full" [disabled]="loading">
+              {{ loading ? 'Guardando...' : 'Guardar Todos los Resultados' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .manager-container { min-height: 100vh; background: radial-gradient(circle at top right, #1a2a3a 0%, #0d1117 100%); padding: 40px 20px; color: white; }
+    .manager-card { max-width: 800px; margin: 0 auto; padding: 40px; }
+    .manager-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .header-left { display: flex; align-items: center; gap: 15px; }
+    .btn-back { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+    
+    .selectors { display: flex; gap: 10px; align-items: center; }
+    select { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; }
+    .results-table { display: grid; gap: 15px; }
+    .table-header { display: flex; justify-content: space-between; padding: 0 25px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 12px; }
+    .match-info { display: flex; align-items: center; gap: 15px; flex: 1; }
+    .escudo { width: 30px; height: 30px; object-fit: contain; }
+    .team-name { font-size: 1rem; min-width: 100px; }
+    .result-buttons { display: flex; gap: 8px; align-items: center; }
+    .result-buttons button { width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: none; color: white; cursor: pointer; }
+    .result-buttons button.active { background: var(--primary); border-color: var(--primary); font-weight: 700; }
+    .btn-danger-outline { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
+    .btn-clear { color: var(--danger) !important; border: none !important; font-size: 1.2rem; }
+    
+    .fixture-status-bar { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
+    .visibility-toggle { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+    .status-label { font-weight: 700; font-size: 1.1rem; color: #4ade80; }
+    .status-label.locked { color: #f87171; }
+    .status-desc { font-size: 0.85rem; color: var(--text-muted); margin-left: 55px; }
+
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 22px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(18px); }
+  `]
+})
+export class MatchResultsComponent implements OnInit {
+  tournaments: Tournament[] = [];
+  fixtures: Fixture[] = [];
+  currentFixture: any = null;
+  selectedTournamentId = '';
+  selectedFixtureId = '';
+  loading = false;
+
+  constructor(
+    private tournamentService: TournamentService,
+    private fixtureService: FixtureService,
+    public predictionService: PredictionService
+  ) {}
+
+  ngOnInit() { this.tournamentService.getTournaments().subscribe(data => this.tournaments = data); }
+  onTournamentChange() { this.fixtureService.getFixturesByTournament(this.selectedTournamentId).subscribe(data => { this.fixtures = data; this.selectedFixtureId = ''; this.currentFixture = null; }); }
+  onFixtureChange() { this.currentFixture = this.fixtures.find(f => f.id === this.selectedFixtureId); }
+  
+  toggleSeeAll() {
+    this.currentFixture.seeAll = !this.currentFixture.seeAll;
+    this.fixtureService.updateFixture(this.currentFixture.id, { seeAll: this.currentFixture.seeAll })
+      .subscribe(() => {
+        const msg = this.currentFixture.seeAll ? 'Fecha CERRADA: Ya nadie puede editar.' : 'Fecha POR JUGAR: Usuarios pueden editar.';
+        console.log(msg);
+      });
+  }
+
+  deleteFixture() { if (confirm('¿Borrar fecha y jugadas?')) this.fixtureService.deleteFixture(this.selectedFixtureId).subscribe(() => { this.selectedFixtureId = ''; this.currentFixture = null; this.onTournamentChange(); }); }
+  setResult(match: any, result: string | null) { match.resultado = result; }
+  saveAllResults() {
+    this.loading = true;
+    const promises = this.currentFixture.partidos.map((m: any) => this.fixtureService.updateMatchResult(m.id, m.resultado).toPromise());
+    Promise.all(promises).then(() => { this.predictionService.recalculateRanking(this.selectedTournamentId).subscribe(() => { alert('Actualizado'); this.loading = false; }); });
+  }
+}

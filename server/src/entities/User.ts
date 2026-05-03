@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany } from 'typeorm';
+import { Tournament } from './Tournament';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -40,4 +41,7 @@ export class User {
 
   @UpdateDateColumn()
   fechaActualizacion: Date;
+
+  @ManyToMany(() => Tournament, tournament => tournament.users)
+  tournaments: Tournament[];
 }

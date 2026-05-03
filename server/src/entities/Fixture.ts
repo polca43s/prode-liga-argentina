@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
 import { Tournament } from './Tournament';
 import { Match } from './Match';
 
@@ -18,4 +18,7 @@ export class Fixture {
 
   @OneToMany(() => Match, match => match.fixture)
   partidos: Match[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }
