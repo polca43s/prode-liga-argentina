@@ -29,7 +29,12 @@ import MatchController from './controllers/MatchController';
 import PredictionController from './controllers/PredictionController';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://polca43s.github.io",
+    "http://localhost:4200"
+  ]
+}));
 app.use(express.json());
 
 // Rutas
