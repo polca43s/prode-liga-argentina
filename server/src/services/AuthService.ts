@@ -13,11 +13,18 @@ export class AuthService {
   private mailService = new MailService();
 
   async register(userData: any) {
-    const { password, ...rest } = userData;
+    let { mail, password, ...rest } = userData;
+    
+    // Normalizar email
+    if (mail) {
+      mail = mail.trim().toLowerCase();
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const user = this.userRepository.create({
       ...rest,
+      mail,
       password: hashedPassword
     });
 
@@ -30,14 +37,18 @@ export class AuthService {
   }
 
   async login(mailOrNickname: string, password: string) {
+    const identifier = mailOrNickname.trim().toLowerCase();
+    
     const user = await this.userRepository.findOne({
       where: [
-        { mail: mailOrNickname },
-        { nickname: mailOrNickname }
+        { mail: identifier },
+        { nickname: identifier }
       ]
     });
 
     if (!user) throw new Error('Usuario no encontrado');
+
+    if (!user.active) throw new Error('Cuenta desactivada. Contacta al administrador.');
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) throw new Error('Contraseña incorrecta');

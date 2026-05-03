@@ -13,6 +13,7 @@ export interface User {
   fechaUltimoLogin?: Date;
   tipo: UserRole;
   password?: string;
+  active?: boolean;
 }
 
 export interface Team {

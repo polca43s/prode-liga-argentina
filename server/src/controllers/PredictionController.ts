@@ -9,8 +9,10 @@ import { Standing } from '../entities/Standing';
 import { Like } from 'typeorm';
 
 import { authMiddleware } from '../middlewares/authMiddleware';
+import { MailService } from '../services/MailService';
 
 const router = Router();
+const mailService = new MailService();
 const getPredictionRepository = () => AppDataSource.getRepository(Prediction);
 const getDetailRepository = () => AppDataSource.getRepository(PredictionDetail);
 
@@ -60,6 +62,17 @@ router.post('/', authMiddleware, async (req: any, res: Response) => {
     });
 
     await getDetailRepository().save(newDetails);
+
+    // Enviar comprobante por email en segundo plano (asíncrono para no demorar la respuesta)
+    getPredictionRepository().findOne({
+      where: { id: prediction.id },
+      relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
+    }).then(fullPrediction => {
+      if (fullPrediction) {
+        mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
+      }
+    }).catch(err => console.error("Error enviando comprobante de jugada:", err));
+
     res.status(201).json({ message: 'Jugada guardada con éxito' });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -207,20 +220,23 @@ router.post('/recalculate/:tournamentId', async (req: Request, res: Response) =>
           user: p.user,
           puntos: 0,
           fechasGanadas: 0,
-          hitsV: 0,
-          hitsE: 0,
-          hitsL: 0,
+          predV: 0,
+          predE: 0,
+          predL: 0,
           fixtureScores: {}
         };
       }
 
       let currentFixturePoints = 0;
       p.detalles.forEach(d => {
+        // Contar la cantidad de veces que el usuario pronosticó cada resultado
+        if (d.seleccion.includes('V')) userStats[uid].predV++;
+        if (d.seleccion.includes('E')) userStats[uid].predE++;
+        if (d.seleccion.includes('L')) userStats[uid].predL++;
+
+        // Contar puntos solo si acertó
         if (d.match.resultado && d.seleccion.includes(d.match.resultado)) {
           currentFixturePoints++;
-          if (d.match.resultado === 'V') userStats[uid].hitsV++;
-          if (d.match.resultado === 'E') userStats[uid].hitsE++;
-          if (d.match.resultado === 'L') userStats[uid].hitsL++;
         }
       });
 
@@ -264,9 +280,9 @@ router.post('/recalculate/:tournamentId', async (req: Request, res: Response) =>
       standing.playerName = stat.user.nombre;
       standing.puntos = stat.puntos;
       standing.fechasGanadas = fGanadas;
-      standing.visita = stat.hitsV;
-      standing.empate = stat.hitsE;
-      standing.local = stat.hitsL;
+      standing.visita = stat.predV;
+      standing.empate = stat.predE;
+      standing.local = stat.predL;
       standing.lastUpdate = new Date();
 
       await standingRepo.save(standing);

@@ -18,9 +18,12 @@ import { RouterModule } from '@angular/router';
         <header class="header">
           <div class="header-main">
             <h1>🏆 Tablas de Posiciones</h1>
-            <button (click)="logout()" class="btn-logout-user">Cerrar Sesión 🚪</button>
+            <div class="user-session">
+              <span class="logged-nickname" *ngIf="currentUser()">👤 {{ currentUser()?.nickname }}</span>
+              <button (click)="logout()" class="btn-logout-user">Cerrar Sesión 🚪</button>
+            </div>
           </div>
-          <div class="selectors">
+          <div class="selectors" *ngIf="tournaments.length > 1">
             <select [(ngModel)]="selectedTournamentId" (change)="onTournamentChange()">
               <option value="" disabled>Torneo...</option>
               <option *ngFor="let t of tournaments" [value]="t.id">{{ t.nombre }}</option>
@@ -75,37 +78,36 @@ import { RouterModule } from '@angular/router';
                   <th>#</th>
                   <th>Jugador</th>
                   <th class="stat" title="Fechas Ganadas">FG</th>
-                  <th class="stat">V</th>
-                  <th class="stat">E</th>
                   <th class="stat">L</th>
+                  <th class="stat">E</th>
+                  <th class="stat">V</th>
                   <th class="points">PUNTOS</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let p of displayRanking; let i = index" [class.top-three]="i < 3">
-                  <td class="rank">{{ i + 1 }}</td>
+                  <td class="rank">#{{ i + 1 }}</td>
                   <td class="player">
                     <div class="player-info">
-                      <span class="nick">@{{ p.user.nickname }}</span>
-                      <span class="full-name">{{ p.user.nombre }}</span>
+                      <span class="nick" [title]="p.user.nombre + (p.user.apellido ? ' ' + p.user.apellido.charAt(0) + '.' : '')">{{ p.user.nickname }}</span>
                     </div>
                   </td>
                   
                   <!-- Columnas para Fecha -->
                   <ng-container *ngIf="activeTab === 'fecha'">
-                    <td class="stat">{{ p.stats?.L }}</td>
-                    <td class="stat">{{ p.stats?.E }}</td>
-                    <td class="stat">{{ p.stats?.V }}</td>
-                    <td class="points-val">{{ p.puntos }}</td>
+                    <td class="stat">{{ p.stats?.L || 0 }}</td>
+                    <td class="stat">{{ p.stats?.E || 0 }}</td>
+                    <td class="stat">{{ p.stats?.V || 0 }}</td>
+                    <td class="points-val">{{ p.puntos || 0 }}</td>
                   </ng-container>
 
                   <!-- Columnas para General -->
                   <ng-container *ngIf="activeTab === 'general'">
-                    <td class="stat fg">{{ p.fechasGanadas }}</td>
-                    <td class="stat">{{ p.hitsV }}</td>
-                    <td class="stat">{{ p.hitsE }}</td>
-                    <td class="stat">{{ p.hitsL }}</td>
-                    <td class="points-val">{{ p.puntos }}</td>
+                    <td class="stat fg">{{ p.fechasGanadas || 0 }}</td>
+                    <td class="stat">{{ p.local || 0 }}</td>
+                    <td class="stat">{{ p.empate || 0 }}</td>
+                    <td class="stat">{{ p.visita || 0 }}</td>
+                    <td class="points-val">{{ p.puntos || 0 }}</td>
                   </ng-container>
                 </tr>
               </tbody>
@@ -120,6 +122,8 @@ import { RouterModule } from '@angular/router';
     .main-card { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px; }
     .header { margin-bottom: 20px; }
     .header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .user-session { display: flex; align-items: center; gap: 12px; }
+    .logged-nickname { color: rgba(255,255,255,0.75); font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 6px 14px; border-radius: 20px; }
     .btn-logout-user { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff4d4d; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
     .btn-logout-user:hover { background: rgba(220, 53, 69, 0.2); transform: translateY(-2px); }
     
@@ -131,14 +135,44 @@ import { RouterModule } from '@angular/router';
     .tabs { display: flex; gap: 5px; margin-bottom: 30px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 12px; }
     .tabs button { flex: 1; padding: 12px; border: none; background: none; color: #fff; cursor: pointer; border-radius: 8px; font-weight: 600; transition: 0.3s; }
     .tabs button.active { background: var(--primary); box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3); }
+      .ranking-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
 
     /* RESPONSIVE DESIGN */
     @media (max-width: 768px) {
       .results-container { padding: 10px; }
       .main-card { padding: 20px; }
       .header { flex-direction: column; text-align: center; }
-      .ranking-table th:nth-child(n+4), .ranking-table td:nth-child(n+4) { display: none; }
-      .rank-number { width: 25px; height: 25px; font-size: 0.8rem; }
+            .ranking-table {
+        display: block;
+        overflow-x: auto;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+      /* NEW: keep all columns on small screens with horizontal scroll */
+      .ranking-table {
+        display: block;
+        overflow-x: auto;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+      .ranking-table th, .ranking-table td {
+        white-space: nowrap;
+        font-size: 0.75rem;
+        padding: 8px 10px;
+      }
+      .rank-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+      }
+      .stat, .points-val { width: auto; min-width: 40px; }
+      .rank { font-size: 1rem; }
+      .nick { font-size: 0.85rem; }
+      .full-name { font-size: 0.65rem; }
+
     }
 
     .tab-filters { margin-bottom: 20px; }
@@ -154,7 +188,7 @@ import { RouterModule } from '@angular/router';
     .ranking-table tr td:last-child { border-radius: 0 12px 12px 0; }
 
     .rank { font-weight: 900; color: var(--primary); font-size: 1.1rem; width: 50px; }
-    .nick { font-weight: 600; }
+    .nick { font-weight: 600; cursor: help; border-bottom: 1px dotted rgba(255,255,255,0.3); }
     .full-name { font-size: 0.7rem; color: var(--text-muted); }
     .stat { text-align: center; color: #aaa; width: 60px; }
     .fg { color: #ffc107; font-weight: 700; }
@@ -179,6 +213,8 @@ export class ResultsComponent implements OnInit {
   ranking: any[] = [];
   displayRanking: any[] = [];
 
+  currentUser = this.authService.currentUser;
+
   constructor(
     private tournamentService: TournamentService,
     private fixtureService: FixtureService,
@@ -191,10 +227,24 @@ export class ResultsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.tournamentService.getTournaments().subscribe(data => this.tournaments = data);
+    this.tournamentService.getTournaments().subscribe(data => {
+      this.tournaments = data;
+      
+      const lastTournamentId = localStorage.getItem('lastSelectedTournamentId');
+      if (lastTournamentId && this.tournaments.some(t => t.id === lastTournamentId)) {
+        this.selectedTournamentId = lastTournamentId;
+        this.onTournamentChange();
+      } else if (this.tournaments.length > 0) {
+        this.selectedTournamentId = this.tournaments[0].id;
+        this.onTournamentChange();
+      }
+    });
   }
 
   onTournamentChange() {
+    if (this.selectedTournamentId) {
+      localStorage.setItem('lastSelectedTournamentId', this.selectedTournamentId);
+    }
     this.fixtureService.getFixturesByTournament(this.selectedTournamentId).subscribe(data => {
       this.fixtures = data;
       this.selectedFixtureId = '';

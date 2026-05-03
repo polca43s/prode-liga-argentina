@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Fixture, Match } from '../models/prode.models';
+import { environment } from '../constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FixtureService {
-  private fixtureUrl = 'http://localhost:3001/api/fixtures';
-  private matchUrl = 'http://localhost:3001/api/matches';
+  private fixtureUrl = `${environment.baseURL}/api/fixtures`;
+  private matchUrl = `${environment.baseURL}/api/matches`;
 
   constructor(private http: HttpClient) {}
 

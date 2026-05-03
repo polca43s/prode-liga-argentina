@@ -18,16 +18,15 @@ import { RouterModule } from '@angular/router';
         <header class="header">
           <div class="header-main">
             <h1>🎯 Realizar Jugada</h1>
-            <button (click)="logout()" class="btn-logout-user">Cerrar Sesión 🚪</button>
+            <div class="user-session">
+              <span class="logged-nickname" *ngIf="currentUser()">👤 {{ currentUser()?.nickname }}</span>
+              <button (click)="logout()" class="btn-logout-user">Cerrar Sesión 🚪</button>
+            </div>
           </div>
-          <div class="selectors">
+          <div class="selectors" *ngIf="tournaments.length > 1">
             <select [(ngModel)]="selectedTournamentId" (change)="onTournamentChange()">
               <option value="" disabled>Torneo...</option>
               <option *ngFor="let t of tournaments" [value]="t.id">{{ t.nombre }}</option>
-            </select>
-            <select [(ngModel)]="selectedFixtureId" (change)="onFixtureChange()" *ngIf="selectedTournamentId">
-              <option value="" disabled>Fecha...</option>
-              <option *ngFor="let f of fixtures" [value]="f.id">{{ f.nombre }}</option>
             </select>
           </div>
 
@@ -35,6 +34,14 @@ import { RouterModule } from '@angular/router';
           <div class="global-tabs" *ngIf="tournaments.length > 0">
             <button routerLink="/resultados" class="global-tab-btn outline">📊 Posiciones y Resultados</button>
             <button [class.active]="true" class="global-tab-btn active">✍️ Hacer mi próxima jugada</button>
+          </div>
+          
+          <!-- SELECTOR DE FECHA -->
+          <div class="fixture-selector" *ngIf="selectedTournamentId">
+            <select [(ngModel)]="selectedFixtureId" (change)="onFixtureChange()">
+              <option value="" disabled>Selecciona la Fecha a Jugar...</option>
+              <option *ngFor="let f of fixtures" [value]="f.id">{{ f.nombre }}</option>
+            </select>
           </div>
         </header>
 
@@ -72,18 +79,26 @@ import { RouterModule } from '@angular/router';
               <button (click)="viewingOther = null" class="btn-secondary small">Volver a mi jugada</button>
             </div>
             <div class="match-list readonly">
-               <div *ngFor="let match of currentFixture.partidos" class="match-row">
-                  <div class="teams">
-                    <img [src]="match.local.escudo" class="escudo">
-                    <span>{{ match.local.nombre }}</span>
-                    <span class="vs">VS</span>
-                    <span>{{ match.visitante.nombre }}</span>
-                    <img [src]="match.visitante.escudo" class="escudo">
-                  </div>
-                  <div class="selection-display">
-                    {{ getSelectionForMatch(viewingOther, match.id) }}
-                  </div>
-               </div>
+              <div class="grid-header">
+                <div>L</div><div></div><div>E</div><div></div><div>V</div>
+              </div>
+              <div *ngFor="let match of currentFixture.partidos" class="match-row">
+                <div class="pred-btn" [class.active]="getSelectionForMatch(viewingOther, match.id).includes('L')"></div>
+                
+                <div class="team-container local">
+                  <span class="team-name">{{ match.local.nombre }}</span>
+                  <img [src]="match.local.escudo" class="escudo" *ngIf="match.local.escudo">
+                </div>
+
+                <div class="pred-btn" [class.active]="getSelectionForMatch(viewingOther, match.id).includes('E')"></div>
+                
+                <div class="team-container visitante">
+                  <img [src]="match.visitante.escudo" class="escudo" *ngIf="match.visitante.escudo">
+                  <span class="team-name">{{ match.visitante.nombre }}</span>
+                </div>
+
+                <div class="pred-btn" [class.active]="getSelectionForMatch(viewingOther, match.id).includes('V')"></div>
+              </div>
             </div>
           </div>
 
@@ -97,26 +112,49 @@ import { RouterModule } from '@angular/router';
             </div>
 
             <div class="match-list" [class.disabled]="currentFixture.seeAll">
+              <!-- Grid Header -->
+              <div class="grid-header">
+                <div>L</div>
+                <div></div>
+                <div>E</div>
+                <div></div>
+                <div>V</div>
+              </div>
+
+              <!-- Partidos -->
               <div *ngFor="let match of currentFixture.partidos" class="match-row">
-                <div class="teams">
-                  <img [src]="match.local.escudo" class="escudo">
-                  <span>{{ match.local.nombre }}</span>
-                  <span class="vs">VS</span>
-                  <span>{{ match.visitante.nombre }}</span>
-                  <img [src]="match.visitante.escudo" class="escudo">
-                </div>
+                <!-- Columna L -->
+                <button class="pred-btn" 
+                        [class.active]="hasSelection(match.id, 'L')" 
+                        (click)="toggleSelection(match.id, 'L')" 
+                        [disabled]="currentFixture.seeAll">
+                </button>
                 
-                <div class="prediction-buttons">
-                  <button [class.active]="hasSelection(match.id, 'L')" 
-                          (click)="toggleSelection(match.id, 'L')" 
-                          [disabled]="currentFixture.seeAll">L</button>
-                  <button [class.active]="hasSelection(match.id, 'E')" 
-                          (click)="toggleSelection(match.id, 'E')" 
-                          [disabled]="currentFixture.seeAll">E</button>
-                  <button [class.active]="hasSelection(match.id, 'V')" 
-                          (click)="toggleSelection(match.id, 'V')" 
-                          [disabled]="currentFixture.seeAll">V</button>
+                <!-- Equipo Local -->
+                <div class="team-container local">
+                  <span class="team-name">{{ match.local.nombre }}</span>
+                  <img [src]="match.local.escudo" class="escudo" *ngIf="match.local.escudo">
                 </div>
+
+                <!-- Columna E -->
+                <button class="pred-btn" 
+                        [class.active]="hasSelection(match.id, 'E')" 
+                        (click)="toggleSelection(match.id, 'E')" 
+                        [disabled]="currentFixture.seeAll">
+                </button>
+                
+                <!-- Equipo Visitante -->
+                <div class="team-container visitante">
+                  <img [src]="match.visitante.escudo" class="escudo" *ngIf="match.visitante.escudo">
+                  <span class="team-name">{{ match.visitante.nombre }}</span>
+                </div>
+
+                <!-- Columna V -->
+                <button class="pred-btn" 
+                        [class.active]="hasSelection(match.id, 'V')" 
+                        (click)="toggleSelection(match.id, 'V')" 
+                        [disabled]="currentFixture.seeAll">
+                </button>
               </div>
             </div>
 
@@ -142,6 +180,8 @@ import { RouterModule } from '@angular/router';
     .main-card { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px; }
     .header { margin-bottom: 20px; }
     .header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .user-session { display: flex; align-items: center; gap: 12px; }
+    .logged-nickname { color: rgba(255,255,255,0.75); font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 6px 14px; border-radius: 20px; }
     .btn-logout-user { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff4d4d; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
     .btn-logout-user:hover { background: rgba(220, 53, 69, 0.2); transform: translateY(-2px); }
     
@@ -150,22 +190,13 @@ import { RouterModule } from '@angular/router';
     .global-tab-btn.outline { background: transparent; border: 1px dashed rgba(255,255,255,0.2); color: white; opacity: 0.8; }
     .global-tab-btn.outline:hover { background: rgba(255,255,255,0.05); opacity: 1; transform: translateY(-2px); }
 
-    .selectors { display: flex; gap: 10px; }
+    .selectors { display: flex; gap: 10px; margin-bottom: 20px; }
     select { background: rgba(255,255,255,0.05); color: #000; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-size: 0.9rem; }
+    
+    .fixture-selector { margin: 15px 0; }
+    .fixture-selector select { width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; background: rgba(116, 172, 223, 0.1); border-color: var(--primary); }
 
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 768px) {
-      .prediction-container { padding: 10px; }
-      .main-card { padding: 20px; border-radius: 15px; }
-      .header { flex-direction: column; align-items: stretch; text-align: center; }
-      .selectors { flex-direction: column; }
-      .match-row { flex-direction: column; gap: 15px; padding: 15px; }
-      .teams { flex-direction: column; text-align: center; gap: 8px; }
-      .escudo { width: 45px; height: 45px; }
-      .prediction-buttons { width: 100%; justify-content: space-between; }
-      .prediction-buttons button { flex: 1; height: 50px; }
-      .view-header { flex-direction: column; gap: 10px; text-align: center; }
-    }
+
 
     .lock-alert {
       display: flex; align-items: center; gap: 20px;
@@ -198,22 +229,43 @@ import { RouterModule } from '@angular/router';
     .search-item { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
     .search-item:hover { background: rgba(255,255,255,0.1); }
 
-    .match-list { display: grid; gap: 15px; margin-bottom: 30px; }
+    .match-list { 
+      display: flex; flex-direction: column;
+      background: var(--primary); border: 2px solid var(--primary);
+      border-radius: 10px; overflow: hidden; margin-bottom: 30px; 
+    }
     .match-list.disabled { opacity: 0.8; }
-    .match-row {
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 12px;
+    
+    .grid-header {
+      display: grid; grid-template-columns: 50px 1fr 50px 1fr 50px;
+      background-color: var(--primary); color: white; font-weight: 900; text-align: center;
+      border-bottom: 3px solid rgba(0,0,0,0.2);
     }
-    .teams { display: flex; align-items: center; gap: 15px; flex: 1; }
-    .escudo { width: 35px; height: 35px; object-fit: contain; }
-    .vs { color: var(--text-muted); font-size: 0.7rem; font-weight: 900; }
+    .grid-header > div { padding: 10px 0; }
 
-    .prediction-buttons { display: flex; gap: 10px; }
-    .prediction-buttons button {
-      width: 45px; height: 45px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
-      background: none; color: white; cursor: pointer; transition: all 0.2s;
+    .match-row {
+      display: grid; grid-template-columns: 50px 1fr 50px 1fr 50px;
+      background: #fdfdfd; color: #111;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.15);
     }
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; }
+    .match-row:last-child { border-bottom: none; }
+    .match-row:nth-child(even) { background: #f4f4f4; }
+    
+    .pred-btn {
+      background: var(--primary); border: none; border-left: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
+      color: transparent; font-weight: 900; font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+      display: flex; justify-content: center; align-items: center; padding: 0;
+    }
+    .pred-btn:hover:not(:disabled) { background: rgba(116, 172, 223, 0.8); }
+    .pred-btn.active { color: #111; }
+    .pred-btn.active::before { content: 'X'; }
+    .pred-btn:disabled { cursor: default; }
+
+    .team-container { display: flex; align-items: center; gap: 10px; padding: 10px 15px; }
+    .team-container.local { justify-content: flex-end; text-align: right; }
+    .team-container.visitante { justify-content: flex-start; text-align: left; }
+    .team-name { font-weight: 700; font-size: 0.95rem; }
+    .escudo { width: 35px; height: 35px; object-fit: contain; }
 
     .dobles-info {
       background: rgba(116, 172, 223, 0.1);
@@ -238,6 +290,24 @@ import { RouterModule } from '@angular/router';
     .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
     .empty-state h2 { margin-bottom: 10px; color: #fff; }
     .empty-state p { color: var(--text-muted); margin-bottom: 30px; }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 768px) {
+      .prediction-container { padding: 5px; }
+      .main-card { padding: 10px; border-radius: 12px; }
+      .header { flex-direction: column; align-items: stretch; text-align: center; }
+      .selectors { flex-direction: column; }
+      
+      .grid-header { grid-template-columns: 35px 1fr 35px 1fr 35px; font-size: 0.8rem; }
+      .match-row { grid-template-columns: 35px 1fr 35px 1fr 35px; }
+      
+      .team-container { padding: 2px; gap: 3px; flex-direction: row !important; }
+      .team-name { font-size: 0.65rem; line-height: 1.1; word-wrap: break-word; }
+      .escudo { width: 18px; height: 18px; flex-shrink: 0; }
+      
+      .pred-btn { font-size: 1rem; }
+      .view-header { flex-direction: column; gap: 10px; text-align: center; }
+    }
   `]
 })
 export class PredictionSubmitComponent implements OnInit {
@@ -255,6 +325,8 @@ export class PredictionSubmitComponent implements OnInit {
   searchResults: any[] = [];
   viewingOther: any = null;
 
+  currentUser = this.authService.currentUser;
+
   constructor(
     private tournamentService: TournamentService,
     private fixtureService: FixtureService,
@@ -265,7 +337,19 @@ export class PredictionSubmitComponent implements OnInit {
   ngOnInit() {
     const user = this.authService.getCurrentUser();
     if (user) {
-      this.tournamentService.getTournamentsByUser(user.id).subscribe((data: any) => this.tournaments = data);
+      this.tournamentService.getTournamentsByUser(user.id).subscribe((data: any) => {
+        this.tournaments = data;
+        
+        // Memoria de selección
+        const lastTournamentId = localStorage.getItem('lastSelectedTournamentId');
+        if (lastTournamentId && this.tournaments.some(t => t.id === lastTournamentId)) {
+          this.selectedTournamentId = lastTournamentId;
+          this.onTournamentChange();
+        } else if (this.tournaments.length > 0) {
+          this.selectedTournamentId = this.tournaments[0].id;
+          this.onTournamentChange();
+        }
+      });
     }
   }
 
@@ -274,6 +358,9 @@ export class PredictionSubmitComponent implements OnInit {
   }
 
   onTournamentChange() {
+    if (this.selectedTournamentId) {
+      localStorage.setItem('lastSelectedTournamentId', this.selectedTournamentId);
+    }
     this.fixtureService.getFixturesByTournament(this.selectedTournamentId).subscribe((data: any) => {
       this.fixtures = data;
       this.selectedFixtureId = '';

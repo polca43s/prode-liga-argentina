@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { PasswordRecoveryComponent } from './features/auth/password-recovery/password-recovery.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { ResultsComponent } from './features/results/results.component';
 import { AdminDashboardComponent } from './features/admin/admin-dashboard/admin-dashboard.component';
 import { TournamentManagerComponent } from './features/admin/tournaments/tournament-manager.component';
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'password-recovery', component: PasswordRecoveryComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'resultados', component: ResultsComponent },
   { path: 'jugada', component: PredictionSubmitComponent },
   { path: 'admin', component: AdminDashboardComponent },

@@ -38,7 +38,12 @@ import { User, UserRole } from '../../../core/models/prode.models';
                   </div>
                 </td>
                 <td>{{ user.mail }}</td>
-                <td><span class="role-badge" [class.admin]="user.tipo === 'ADMIN'">{{ user.tipo }}</span></td>
+                <td>
+                  <span class="role-badge" [class.admin]="user.tipo === 'ADMIN'">{{ user.tipo }}</span>
+                  <span class="role-badge" [ngClass]="user.active ? 'active-badge' : 'inactive-badge'">
+                    {{ user.active ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
                 <td>
                   <div class="actions">
                     <button (click)="openEditForm(user)" class="btn-icon">✏️</button>
@@ -75,6 +80,13 @@ import { User, UserRole } from '../../../core/models/prode.models';
           
           <div class="form-row">
             <div class="form-group">
+              <label>Estado de la Cuenta</label>
+              <select [(ngModel)]="currentUser.active" name="active">
+                <option [ngValue]="true">🟢 Activa (Permite Login)</option>
+                <option [ngValue]="false">🔴 Desactivada (Bloquea Login)</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label>Nombre</label>
               <input type="text" [(ngModel)]="currentUser.nombre" name="nombre">
             </div>
@@ -105,8 +117,10 @@ import { User, UserRole } from '../../../core/models/prode.models';
     .admin-table tr.editing { background: rgba(116, 172, 223, 0.05); }
     
     .user-cell { display: flex; flex-direction: column; }
-    .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; background: rgba(255,255,255,0.1); }
+    .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; background: rgba(255,255,255,0.1); margin-right: 5px; display: inline-block; }
     .role-badge.admin { background: var(--primary); color: white; }
+    .active-badge { background: #166534; color: #4ade80; border: 1px solid #4ade80; }
+    .inactive-badge { background: #7f1d1d; color: #f87171; border: 1px solid #f87171; }
 
     .form-card { width: 100%; max-width: 1000px; padding: 40px; border-top: 3px solid var(--primary); }
     .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }

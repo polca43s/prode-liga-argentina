@@ -45,7 +45,7 @@ export const AppDataSource = new DataSource({
   url: process.env.DATABASE_URL,
   synchronize: true,
   logging: true,
-  entities: [User, Team, Tournament, Fixture, Match, Prediction, PredictionDetail],
+  entities: [User, Team, Tournament, Fixture, Match, Prediction, PredictionDetail, Standing],
   extra: {
     ssl: {
       rejectUnauthorized: false
@@ -53,13 +53,14 @@ export const AppDataSource = new DataSource({
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 AppDataSource.initialize()
   .then(() => {
     console.log('Base de datos conectada correctamente');
-    app.listen(PORT, () => {
-      console.log(`Servidor PRODE corriendo en http://localhost:${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+      const host = process.env.BASE_URL || 'http://localhost';
+      console.log(`Servidor PRODE corriendo en ${host}:${PORT}`);
     });
   })
   .catch((error) => console.log('Error conectando a la base de datos:', error));

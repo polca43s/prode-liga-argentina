@@ -36,6 +36,15 @@ export class User {
   @Column({ nullable: true })
   fechaUltimoLogin: Date;
 
+  @Column({ default: true })
+  active: boolean;
+
+  @Column({ nullable: true })
+  resetToken: string;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  resetTokenExpiry: Date;
+
   @CreateDateColumn()
   fechaCreacion: Date;
 

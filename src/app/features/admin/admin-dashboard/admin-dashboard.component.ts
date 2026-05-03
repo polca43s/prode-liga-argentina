@@ -15,7 +15,10 @@ import { AuthService } from '../../../core/services/auth.service';
         <header class="admin-header">
           <div class="header-top">
             <span class="badge">Panel de Control</span>
-            <button (click)="logout()" class="btn-logout">Cerrar Sesión 🚪</button>
+            <div class="user-session">
+              <span class="logged-nickname" *ngIf="currentUser()">👤 {{ currentUser()?.nickname }}</span>
+              <button (click)="logout()" class="btn-logout">Cerrar Sesión 🚪</button>
+            </div>
           </div>
           <h1>Administración</h1>
           <p>Gestiona el torneo y los usuarios del PRODE</p>
@@ -81,6 +84,8 @@ import { AuthService } from '../../../core/services/auth.service';
     .admin-card { width: 100%; max-width: 800px; padding: 50px; }
     .admin-header { margin-bottom: 40px; }
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .user-session { display: flex; align-items: center; gap: 12px; }
+    .logged-nickname { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 600; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 20px; }
     .btn-logout { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff4d4d; padding: 6px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.3s; }
     .btn-logout:hover { background: rgba(220, 53, 69, 0.2); transform: translateY(-2px); }
     
@@ -113,6 +118,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class AdminDashboardComponent implements OnInit {
   userCount = 0;
   tournamentCount = 0;
+
+  currentUser = this.authService.currentUser;
 
   constructor(
     private userService: UserService,

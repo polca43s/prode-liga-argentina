@@ -50,25 +50,30 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
         </div>
 
         <div *ngIf="currentFixture" class="results-table">
-          <div class="table-header">
-            <span>Partido</span>
-            <span>Resultado Final</span>
-          </div>
-
-          <div *ngFor="let match of currentFixture.partidos" class="result-row">
-            <div class="match-info">
-              <img [src]="match.local?.escudo" class="escudo">
-              <span class="team-name">{{ match.local?.nombre }}</span>
-              <span class="vs">VS</span>
-              <span class="team-name">{{ match.visitante?.nombre }}</span>
-              <img [src]="match.visitante?.escudo" class="escudo">
+          <div class="match-list">
+            <div class="grid-header">
+              <div>L</div><div></div><div>E</div><div></div><div>V</div>
             </div>
 
-            <div class="result-buttons">
-              <button [class.active]="match.resultado === 'L'" (click)="setResult(match, 'L')">L</button>
-              <button [class.active]="match.resultado === 'E'" (click)="setResult(match, 'E')">E</button>
-              <button [class.active]="match.resultado === 'V'" (click)="setResult(match, 'V')">V</button>
-              <button class="btn-clear" (click)="setResult(match, null)" *ngIf="match.resultado">✖</button>
+            <div *ngFor="let match of currentFixture.partidos" class="match-row">
+              <button class="pred-btn" [class.active]="match.resultado === 'L'" (click)="setResult(match, 'L')"></button>
+              
+              <div class="team-container local">
+                <span class="team-name">{{ match.local?.nombre }}</span>
+                <img [src]="match.local?.escudo" class="escudo" *ngIf="match.local?.escudo">
+              </div>
+
+              <button class="pred-btn" [class.active]="match.resultado === 'E'" (click)="setResult(match, 'E')"></button>
+              
+              <div class="team-container visitante">
+                <img [src]="match.visitante?.escudo" class="escudo" *ngIf="match.visitante?.escudo">
+                <span class="team-name">{{ match.visitante?.nombre }}</span>
+              </div>
+
+              <div class="v-group">
+                <button class="pred-btn" [class.active]="match.resultado === 'V'" (click)="setResult(match, 'V')"></button>
+                <button class="btn-clear" (click)="setResult(match, null)" *ngIf="match.resultado" title="Borrar">✖</button>
+              </div>
             </div>
           </div>
 
@@ -90,17 +95,61 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
     
     .selectors { display: flex; gap: 10px; align-items: center; }
     select { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; }
-    .results-table { display: grid; gap: 15px; }
-    .table-header { display: flex; justify-content: space-between; padding: 0 25px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
-    .result-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 12px; }
-    .match-info { display: flex; align-items: center; gap: 15px; flex: 1; }
-    .escudo { width: 30px; height: 30px; object-fit: contain; }
-    .team-name { font-size: 1rem; min-width: 100px; }
-    .result-buttons { display: flex; gap: 8px; align-items: center; }
-    .result-buttons button { width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: none; color: white; cursor: pointer; }
-    .result-buttons button.active { background: var(--primary); border-color: var(--primary); font-weight: 700; }
-    .btn-danger-outline { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
-    .btn-clear { color: var(--danger) !important; border: none !important; font-size: 1.2rem; }
+    
+    .match-list { 
+      display: flex; flex-direction: column;
+      background: var(--primary); border: 2px solid var(--primary);
+      border-radius: 10px; overflow: hidden; margin-bottom: 30px; 
+    }
+    
+    .grid-header {
+      display: grid; grid-template-columns: 50px 1fr 50px 1fr 50px;
+      background-color: var(--primary); color: white; font-weight: 900; text-align: center;
+      border-bottom: 3px solid rgba(0,0,0,0.2);
+    }
+    .grid-header > div { padding: 10px 0; }
+
+    .match-row {
+      display: grid; grid-template-columns: 50px 1fr 50px 1fr 50px;
+      background: #fdfdfd; color: #111;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    }
+    .match-row:last-child { border-bottom: none; }
+    .match-row:nth-child(even) { background: #f4f4f4; }
+    
+    .pred-btn {
+      background: var(--primary); border: none; border-left: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
+      color: transparent; font-weight: 900; font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+      display: flex; justify-content: center; align-items: center; padding: 0; width: 100%; height: 100%;
+    }
+    .pred-btn:hover { background: rgba(116, 172, 223, 0.8); }
+    .pred-btn.active { color: #111; }
+    .pred-btn.active::before { content: 'X'; }
+
+    .team-container { display: flex; align-items: center; gap: 10px; padding: 10px 15px; }
+    .team-container.local { justify-content: flex-end; text-align: right; }
+    .team-container.visitante { justify-content: flex-start; text-align: left; }
+    .team-name { font-weight: 700; font-size: 0.95rem; }
+    .escudo { width: 35px; height: 35px; object-fit: contain; }
+
+    .v-group { position: relative; display: flex; width: 100%; height: 100%; }
+    .btn-clear { position: absolute; right: -30px; top: 50%; transform: translateY(-50%); color: var(--danger); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 768px) {
+      .manager-card { padding: 10px; border-radius: 12px; }
+      .manager-header { flex-direction: column; align-items: stretch; text-align: center; gap: 15px; }
+      
+      .grid-header { grid-template-columns: 35px 1fr 35px 1fr 35px; font-size: 0.8rem; }
+      .match-row { grid-template-columns: 35px 1fr 35px 1fr 35px; }
+      
+      .team-container { padding: 2px; gap: 3px; flex-direction: row !important; }
+      .team-name { font-size: 0.65rem; line-height: 1.1; word-wrap: break-word; }
+      .escudo { width: 18px; height: 18px; flex-shrink: 0; }
+      
+      .pred-btn { font-size: 1rem; }
+      .btn-clear { right: -15px; font-size: 0.9rem; }
+    }
     
     .fixture-status-bar { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
     .visibility-toggle { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
