@@ -79,3 +79,12 @@ input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(116, 172, 223, 0.2);
 }
+
+select {
+  color: #000; /* Texto negro por defecto en el combo */
+}
+
+select option {
+  color: #000; /* Texto negro en las opciones */
+  background-color: #fff; /* Fondo blanco para las opciones */
+}

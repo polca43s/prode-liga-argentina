@@ -13,29 +13,32 @@ export interface User {
   fechaUltimoLogin?: Date;
   tipo: UserRole;
   password?: string;
+  active?: boolean;
 }
 
 export interface Team {
   id: string;
   nombre: string;
-  urlEscudo: string;
+  ciudad: string;
+  escudo: string;
 }
 
 export interface Tournament {
   id: string;
   nombre: string;
-  urlCopas: string;
-  cantidadDeDobles: number;
+  descripcion: string;
+  cantidadDobles: number;
   cantidadParaPremio: number;
+  createdAt?: Date;
+  users: User[];
+  teams: Team[];
 }
 
 export interface Match {
   id: string;
-  localTeamId: string;
-  visitorTeamId: string;
-  localScore?: number;
-  visitorScore?: number;
-  resultadoReal?: 'L' | 'E' | 'V';
+  local: Team;
+  visitante: Team;
+  resultado?: string; // El resultado real oficial
 }
 
 export interface Fixture {

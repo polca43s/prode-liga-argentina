@@ -8,23 +8,13 @@ export class Match {
   id: string;
 
   @ManyToOne(() => Team)
-  localTeam: Team;
+  local: Team;
 
   @ManyToOne(() => Team)
-  visitorTeam: Team;
+  visitante: Team;
 
   @Column({ nullable: true })
-  localScore: number;
-
-  @Column({ nullable: true })
-  visitorScore: number;
-
-  @Column({
-    type: 'enum',
-    enum: ['L', 'E', 'V'],
-    nullable: true
-  })
-  resultadoReal: 'L' | 'E' | 'V';
+  resultado: string; // 'L' (Local), 'E' (Empate) o 'V' (Visitante)
 
   @ManyToOne(() => Fixture, fixture => fixture.partidos)
   fixture: Fixture;

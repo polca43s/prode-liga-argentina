@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany } from 'typeorm';
+import { Tournament } from './Tournament';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -35,9 +36,21 @@ export class User {
   @Column({ nullable: true })
   fechaUltimoLogin: Date;
 
+  @Column({ default: true })
+  active: boolean;
+
+  @Column({ nullable: true })
+  resetToken: string;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  resetTokenExpiry: Date;
+
   @CreateDateColumn()
   fechaCreacion: Date;
 
   @UpdateDateColumn()
   fechaActualizacion: Date;
+
+  @ManyToMany(() => Tournament, tournament => tournament.users)
+  tournaments: Tournament[];
 }
