@@ -3,6 +3,7 @@ import { AuthService } from '../services/AuthService';
 import { AppDataSource } from '../index';
 import { User } from '../entities/User';
 import { MailService } from '../services/MailService';
+import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -11,7 +12,7 @@ const authService = new AuthService();
 const mailService = new MailService();
 const getUserRepository = () => AppDataSource.getRepository(User);
 
-// Registro de usuario
+// Rutas públicas
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const user = await authService.register(req.body);
@@ -23,7 +24,6 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-// Login
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { mailOrNickname, password } = req.body;
@@ -36,8 +36,8 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-// Obtener todos los usuarios (Solo Admin)
-router.get('/', async (req: Request, res: Response) => {
+// Rutas protegidas - cualquier usuario autenticado
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const users = await getUserRepository().find();
     res.json(users || []);
@@ -47,8 +47,8 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Actualizar un usuario (Para cambiar rol o datos)
-router.put('/:id', async (req: Request, res: Response) => {
+// Rutas protegidas - solo admin
+router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await getUserRepository().update(id as string, req.body);
@@ -59,17 +59,14 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Eliminar un usuario
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    // 1. Obtener los repositorios necesarios
     const predictionRepo = AppDataSource.getRepository('Prediction');
     const detailRepo = AppDataSource.getRepository('PredictionDetail');
     const standingRepo = AppDataSource.getRepository('Standing');
     
-    // 2. Buscar al usuario con sus torneos
     const user = await getUserRepository().findOne({
       where: { id: id as string },
       relations: ['tournaments']
@@ -79,32 +76,26 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // 3. Desvincular de todos los torneos
     user.tournaments = [];
     await getUserRepository().save(user);
 
-    // 4. Borrar sus posiciones (Standings)
     await standingRepo.delete({ user: { id: id as string } });
 
-    // 5. Borrar detalles de sus jugadas y luego sus jugadas
     const userPredictions = await predictionRepo.find({ where: { user: { id: id as string } } });
     if (userPredictions.length > 0) {
       const predictionIds = userPredictions.map((p: any) => p.id);
       
-      // Borrar detalles que pertenecen a esas jugadas
       await detailRepo.createQueryBuilder()
         .delete()
         .where("predictionId IN (:...ids)", { ids: predictionIds })
         .execute();
       
-      // Borrar las jugadas
       await predictionRepo.createQueryBuilder()
         .delete()
         .where("id IN (:...ids)", { ids: predictionIds })
         .execute();
     }
 
-    // 6. Finalmente, borrar el usuario
     await getUserRepository().delete(id);
     
     res.json({ message: 'Usuario y todo su historial eliminados correctamente' });

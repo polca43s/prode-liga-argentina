@@ -12,20 +12,21 @@ import { UserManagerComponent } from './features/admin/users/user-manager.compon
 import { FixtureManagerComponent } from './features/admin/fixtures/fixture-manager.component';
 import { MatchResultsComponent } from './features/admin/results/match-results.component';
 import { PredictionSubmitComponent } from './features/predictions/prediction-submit.component';
+import { AuthGuard, AdminGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'password-recovery', component: PasswordRecoveryComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'resultados', component: ResultsComponent },
-  { path: 'jugada', component: PredictionSubmitComponent },
-  { path: 'admin', component: AdminDashboardComponent },
-  { path: 'admin/tournaments', component: TournamentManagerComponent },
-  { path: 'admin/fixtures', component: FixtureManagerComponent },
-  { path: 'admin/teams', component: TeamManagerComponent },
-  { path: 'admin/users', component: UserManagerComponent },
-  { path: 'admin/results', component: MatchResultsComponent },
+  { path: 'resultados', component: ResultsComponent, canActivate: [AuthGuard] },
+  { path: 'jugada', component: PredictionSubmitComponent, canActivate: [AuthGuard] },
+  { path: 'admin', component: AdminDashboardComponent, canActivate: [AdminGuard] },
+  { path: 'admin/tournaments', component: TournamentManagerComponent, canActivate: [AdminGuard] },
+  { path: 'admin/fixtures', component: FixtureManagerComponent, canActivate: [AdminGuard] },
+  { path: 'admin/teams', component: TeamManagerComponent, canActivate: [AdminGuard] },
+  { path: 'admin/users', component: UserManagerComponent, canActivate: [AdminGuard] },
+  { path: 'admin/results', component: MatchResultsComponent, canActivate: [AdminGuard] },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];

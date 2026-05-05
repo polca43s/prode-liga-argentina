@@ -12,9 +12,16 @@ export const authMiddleware = (req: any, res: Response, next: NextFunction) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    req.user = decoded; // Guardamos el usuario decodificado en la request
+    req.user = decoded;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Token inválido o expirado.' });
   }
+};
+
+export const adminMiddleware = (req: any, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.tipo !== 'ADMIN') {
+    return res.status(403).json({ message: 'Acceso denegado. Se requiere rol de administrador.' });
+  }
+  next();
 };

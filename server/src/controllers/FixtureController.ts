@@ -1,13 +1,14 @@
-// server/src/controllers/FixtureController.ts
 import { Request, Response, Router } from 'express';
 import { AppDataSource } from '../index';
 import { Fixture } from '../entities/Fixture';
 import { Prediction } from '../entities/Prediction';
+import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
 const getFixtureRepository = () => AppDataSource.getRepository(Fixture);
 
-router.get('/tournament/:tournamentId', async (req: Request, res: Response) => {
+// Rutas protegidas - cualquier usuario autenticado
+router.get('/tournament/:tournamentId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { tournamentId } = req.params;
     const fixtures = await getFixtureRepository().find({
@@ -22,7 +23,8 @@ router.get('/tournament/:tournamentId', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/', async (req: Request, res: Response) => {
+// Rutas protegidas - solo admin
+router.post('/', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const fixture = getFixtureRepository().create(req.body);
     const result = await getFixtureRepository().save(fixture);
@@ -32,7 +34,7 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     await getFixtureRepository().update(id as string, req.body);
@@ -43,7 +45,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
