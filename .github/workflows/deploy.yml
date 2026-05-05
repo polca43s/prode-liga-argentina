@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Configure Git
         run: |
           git config --global user.name "polca43s"
           git config --global user.email "polca43s@github.com"
-
-      - name: Checkout repo
-        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
