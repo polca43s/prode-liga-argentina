@@ -118,39 +118,7 @@ export class AuthService {
     return this.currentUser();
   }
 
-  isSessionExpired() {
+isSessionExpired() {
     return this.sessionExpired();
-  }
-}
-
-  register(userData: any) {
-    return this.http.post<any>(`${this.apiUrl}/register`, userData);
-  }
-
-  logout() {
-    this.currentUser.set(null);
-    this.token.set(null);
-    localStorage.removeItem('token');
-    this.router.navigate(['/login']);
-  }
-
-  requestPasswordReset(email: string) {
-    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
-  }
-
-  resetPassword(token: string, newPassword: string) {
-    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword });
-  }
-
-  isLoggedIn() {
-    return !!this.token();
-  }
-
-  isAdmin() {
-    return this.currentUser()?.tipo === 'ADMIN';
-  }
-
-  getCurrentUser() {
-    return this.currentUser();
   }
 }
