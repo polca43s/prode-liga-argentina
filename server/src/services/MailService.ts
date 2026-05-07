@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
@@ -122,6 +123,11 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(user: any, token: string) {
+    if (!resend) {
+      console.warn('RESEND_API_KEY no configurada, saltando envío de email');
+      return;
+    }
+
     const frontendUrl = process.env.FRONTEND_URL || 'https://polca43s.github.io/prode-liga-argentina';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
@@ -147,13 +153,17 @@ export class MailService {
       `
     };
 
-    const { data, error } = await resend.emails.send(mailOptions);
-    
-    if (error) {
-      console.error('Error enviando email de recuperación:', error);
-      throw error;
+    try {
+      const { data, error } = await resend.emails.send(mailOptions);
+      
+      if (error) {
+        console.error('Error enviando email de recuperación:', error);
+        return;
+      }
+      
+      console.log(`Email de recuperación enviado a: ${user.mail}, ID: ${data?.id}`);
+    } catch (err) {
+      console.error('Error enviando email de recuperación:', err);
     }
-    
-    console.log(`Email de recuperación enviado a: ${user.mail}, ID: ${data?.id}`);
   }
 }
