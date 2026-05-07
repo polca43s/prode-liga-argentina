@@ -1,51 +1,57 @@
-import { Resend } from 'resend';
+import SibApi from '@sendinblue/client';
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'polca@polca.com.ar';
+const FROM_NAME = 'PRODE Liga Argentina';
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+let apiInstance: SibApi.TransactionalEmailsApi | null = null;
+
+if (BREVO_API_KEY) {
+  apiInstance = new SibApi.TransactionalEmailsApi();
+  apiInstance.setApiKey(SibApi.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY);
+}
+
+async function sendEmail(to: string, subject: string, html: string) {
+  if (!apiInstance) {
+    console.warn('BREVO_API_KEY no configurada, saltando envío de email');
+    return;
+  }
+
+  const sendSmtpEmail = new SibApi.SendSmtpEmail();
+  sendSmtpEmail.to = [{ email: to }];
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.htmlContent = html;
+  sendSmtpEmail.sender = { email: FROM_EMAIL, name: FROM_NAME };
+
+  try {
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log(`Email enviado a: ${to} - Asunto: ${subject}`);
+  } catch (error) {
+    console.error('Error enviando email:', error);
+  }
+}
 
 export class MailService {
   async sendWelcomeEmail(user: any) {
-    if (!resend) {
-      console.warn('RESEND_API_KEY no configurada, saltando envío de email de bienvenida');
-      return;
-    }
-
-    const mailOptions = {
-      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
-      to: user.mail,
-      subject: '¡Bienvenido al PRODE Liga Argentina!',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2 style="color: #74ACDF;">¡Hola, ${user.nombre}!</h2>
-          <p>Te has registrado exitosamente en el <strong>PRODE Liga Argentina</strong>.</p>
-          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
-            <p><strong>Tus datos de acceso:</strong></p>
-            <p><strong>Nickname:</strong> ${user.nickname}</p>
-            <p><strong>Email:</strong> ${user.mail}</p>
-          </div>
-          <p>¡Mucha suerte con tus pronósticos!</p>
-          <hr>
-          <p style="font-size: 0.8em; color: #777;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="color: #74ACDF;">¡Hola, ${user.nombre}!</h2>
+        <p>Te has registrado exitosamente en el <strong>PRODE Liga Argentina</strong>.</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+          <p><strong>Tus datos de acceso:</strong></p>
+          <p><strong>Nickname:</strong> ${user.nickname}</p>
+          <p><strong>Email:</strong> ${user.mail}</p>
         </div>
-      `
-    };
+        <p>¡Mucha suerte con tus pronósticos!</p>
+        <hr>
+        <p style="font-size: 0.8em; color: #777;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+      </div>
+    `;
 
-    try {
-      await resend.emails.send(mailOptions);
-      console.log(`Email de bienvenida enviado a: ${user.mail}`);
-    } catch (error) {
-      console.error('Error enviando email:', error);
-    }
+    await sendEmail(user.mail, '¡Bienvenido al PRODE Liga Argentina!', html);
   }
 
   async sendPredictionConfirmation(user: any, fixture: any, detalles: any[]) {
-    if (!resend) {
-      console.warn('RESEND_API_KEY no configurada, saltando envío de comprobante');
-      return;
-    }
-
     const dateArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "long" });
     const timeArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", timeStyle: "medium" });
 
@@ -113,67 +119,36 @@ export class MailService {
     });
     matchesHtml += `</table>`;
 
-    const mailOptions = {
-      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
-      to: user.mail,
-      subject: `Comprobante de Jugada - ${fixture.nombre}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-          ${matchesHtml}
-        </div>
-      `
-    };
+    const html = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+        ${matchesHtml}
+      </div>
+    `;
 
-    try {
-      await resend.emails.send(mailOptions);
-      console.log(`Comprobante enviado a: ${user.mail} a las ${timeArg}`);
-    } catch (error) {
-      console.error('Error enviando comprobante:', error);
-    }
+    await sendEmail(user.mail, `Comprobante de Jugada - ${fixture.nombre}`, html);
   }
 
   async sendPasswordResetEmail(user: any, token: string) {
-    if (!resend) {
-      console.warn('RESEND_API_KEY no configurada, saltando envío de email');
-      return;
-    }
-
     const frontendUrl = process.env.FRONTEND_URL || 'https://polca43s.github.io/prode-liga-argentina';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
-    const mailOptions = {
-      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
-      to: user.mail,
-      subject: 'Recuperar Contraseña - PRODE Liga Argentina',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
-          <h2 style="color: #74ACDF; text-align: center;">Recuperar Contraseña</h2>
-          <p>Hola <strong>${user.nombre}</strong>,</p>
-          <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta <strong>@${user.nickname}</strong>.</p>
-          <p>Haz clic en el siguiente botón para crear una nueva contraseña. El link vence en <strong>30 minutos</strong>.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #74ACDF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Restablecer Contraseña</a>
-          </div>
-          <p style="font-size: 0.85em; color: #555;">Si no solicitaste este cambio, podés ignorar este correo. Tu contraseña no cambiará.</p>
-          <p style="font-size: 0.8em; color: #999;">Si el botón no funciona, copia y pega este link en tu navegador:</p>
-          <p style="font-size: 0.8em; color: #74ACDF; word-break: break-all;">${resetLink}</p>
-          <hr>
-          <p style="font-size: 0.75em; color: #aaa; text-align: center;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+        <h2 style="color: #74ACDF; text-align: center;">Recuperar Contraseña</h2>
+        <p>Hola <strong>${user.nombre}</strong>,</p>
+        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta <strong>@${user.nickname}</strong>.</p>
+        <p>Haz clic en el siguiente botón para crear una nueva contraseña. El link vence en <strong>30 minutos</strong>.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetLink}" style="background-color: #74ACDF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Restablecer Contraseña</a>
         </div>
-      `
-    };
+        <p style="font-size: 0.85em; color: #555;">Si no solicitaste este cambio, podés ignorar este correo. Tu contraseña no cambiará.</p>
+        <p style="font-size: 0.8em; color: #999;">Si el botón no funciona, copia y pega este link en tu navegador:</p>
+        <p style="font-size: 0.8em; color: #74ACDF; word-break: break-all;">${resetLink}</p>
+        <hr>
+        <p style="font-size: 0.75em; color: #aaa; text-align: center;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+      </div>
+    `;
 
-    try {
-      const { data, error } = await resend.emails.send(mailOptions);
-      
-      if (error) {
-        console.error('Error enviando email de recuperación:', error);
-        return;
-      }
-      
-      console.log(`Email de recuperación enviado a: ${user.mail}, ID: ${data?.id}`);
-    } catch (err) {
-      console.error('Error enviando email de recuperación:', err);
-    }
+    await sendEmail(user.mail, 'Recuperar Contraseña - PRODE Liga Argentina', html);
   }
 }

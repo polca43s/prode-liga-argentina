@@ -13,15 +13,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendinblue/client": "^3.3.1",
     "bcryptjs": "^3.0.3",
+    "brevo": "^1.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.7",
-    "resend": "^4.0.0",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
+    "resend": "^4.0.0",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
