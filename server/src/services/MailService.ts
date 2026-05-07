@@ -1,19 +1,13 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 export class MailService {
-  private transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.MAIL_PORT || '587'),
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS
-    }
-  });
-
   async sendWelcomeEmail(user: any) {
     const mailOptions = {
-      from: `"PRODE Liga Argentina" <${process.env.MAIL_USER}>`,
+      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
       to: user.mail,
       subject: '¡Bienvenido al PRODE Liga Argentina!',
       html: `
@@ -33,7 +27,7 @@ export class MailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await resend.emails.send(mailOptions);
       console.log(`Email de bienvenida enviado a: ${user.mail}`);
     } catch (error) {
       console.error('Error enviando email:', error);
@@ -41,17 +35,14 @@ export class MailService {
   }
 
   async sendPredictionConfirmation(user: any, fixture: any, detalles: any[]) {
-    // Generar Fecha y Hora en zona horaria de Buenos Aires
     const dateArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "long" });
     const timeArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", timeStyle: "medium" });
 
-    // Colores del diseño de la imagen
     const greenBg = '#198725';
     const darkGreenBorder = '#115c19';
     
     let matchesHtml = `
       <table style="width: 100%; max-width: 650px; margin: auto; border-collapse: collapse; border: 2px solid ${darkGreenBorder}; font-family: Arial, sans-serif;">
-        <!-- Cabecera Verde Principal -->
         <tr style="background-color: ${greenBg}; color: black;">
           <td colspan="5" style="padding: 15px 10px; border-bottom: 2px solid ${darkGreenBorder};">
             <h3 style="text-align: center; margin: 0 0 15px 0; font-size: 18px; letter-spacing: 1px;">${fixture.nombre.toUpperCase()}</h3>
@@ -70,7 +61,6 @@ export class MailService {
           </td>
         </tr>
         
-        <!-- Cabeceras L E V -->
         <tr style="background-color: ${greenBg}; color: black; font-size: 18px; font-weight: bold; text-align: center;">
           <td style="width: 10%; border: 1px solid ${darkGreenBorder}; padding: 5px;">L</td>
           <td style="width: 35%; border: 1px solid ${darkGreenBorder}; background-color: white;"></td>
@@ -92,23 +82,18 @@ export class MailService {
 
       matchesHtml += `
         <tr style="background-color: ${bgColor}; font-size: 15px; font-weight: 600; color: #333;">
-          <!-- L -->
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isL}
           </td>
-          <!-- Local Team -->
           <td style="border: 1px solid ${darkGreenBorder}; text-align: right; padding: 10px;">
             ${localName}
           </td>
-          <!-- E -->
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isE}
           </td>
-          <!-- Visitante Team -->
           <td style="border: 1px solid ${darkGreenBorder}; text-align: left; padding: 10px;">
             ${visitName}
           </td>
-          <!-- V -->
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isV}
           </td>
@@ -118,7 +103,7 @@ export class MailService {
     matchesHtml += `</table>`;
 
     const mailOptions = {
-      from: `"PRODE Liga Argentina" <${process.env.MAIL_USER}>`,
+      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
       to: user.mail,
       subject: `Comprobante de Jugada - ${fixture.nombre}`,
       html: `
@@ -129,7 +114,7 @@ export class MailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await resend.emails.send(mailOptions);
       console.log(`Comprobante enviado a: ${user.mail} a las ${timeArg}`);
     } catch (error) {
       console.error('Error enviando comprobante:', error);
@@ -137,11 +122,11 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(user: any, token: string) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://10.3.213.6:4200';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://polca43s.github.io/prode-liga-argentina';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     const mailOptions = {
-      from: `"PRODE Liga Argentina" <${process.env.MAIL_USER}>`,
+      from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
       to: user.mail,
       subject: 'Recuperar Contraseña - PRODE Liga Argentina',
       html: `
@@ -162,7 +147,13 @@ export class MailService {
       `
     };
 
-    await this.transporter.sendMail(mailOptions);
-    console.log(`Email de recuperación enviado a: ${user.mail}`);
+    const { data, error } = await resend.emails.send(mailOptions);
+    
+    if (error) {
+      console.error('Error enviando email de recuperación:', error);
+      throw error;
+    }
+    
+    console.log(`Email de recuperación enviado a: ${user.mail}, ID: ${data?.id}`);
   }
 }
