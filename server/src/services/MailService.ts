@@ -7,6 +7,11 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 
 export class MailService {
   async sendWelcomeEmail(user: any) {
+    if (!resend) {
+      console.warn('RESEND_API_KEY no configurada, saltando envío de email de bienvenida');
+      return;
+    }
+
     const mailOptions = {
       from: `"PRODE Liga Argentina" <${FROM_EMAIL}>`,
       to: user.mail,
@@ -36,6 +41,11 @@ export class MailService {
   }
 
   async sendPredictionConfirmation(user: any, fixture: any, detalles: any[]) {
+    if (!resend) {
+      console.warn('RESEND_API_KEY no configurada, saltando envío de comprobante');
+      return;
+    }
+
     const dateArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "long" });
     const timeArg = new Date().toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", timeStyle: "medium" });
 
