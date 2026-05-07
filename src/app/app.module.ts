@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -16,6 +16,7 @@ import { UserManagerComponent } from './features/admin/users/user-manager.compon
 import { FixtureManagerComponent } from './features/admin/fixtures/fixture-manager.component';
 import { MatchResultsComponent } from './features/admin/results/match-results.component';
 import { PredictionSubmitComponent } from './features/predictions/prediction-submit.component';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,9 @@ import { PredictionSubmitComponent } from './features/predictions/prediction-sub
     PredictionSubmitComponent,
     MatchResultsComponent
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
