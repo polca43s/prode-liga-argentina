@@ -13,11 +13,25 @@ export class AuthService {
   private mailService = new MailService();
 
   async register(userData: any) {
-    let { mail, password, ...rest } = userData;
+    let { mail, password, nickname, ...rest } = userData;
     
     // Normalizar email
     if (mail) {
       mail = mail.trim().toLowerCase();
+    }
+    
+    // Verificar si el email ya existe
+    const existingMail = await this.userRepository.findOne({ where: { mail } });
+    if (existingMail) {
+      throw new Error('Ya existe un usuario registrado con ese email');
+    }
+    
+    // Verificar si el nickname ya existe
+    if (nickname) {
+      const existingNickname = await this.userRepository.findOne({ where: { nickname } });
+      if (existingNickname) {
+        throw new Error('El nickname ya está en uso');
+      }
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,6 +39,7 @@ export class AuthService {
     const user = this.userRepository.create({
       ...rest,
       mail,
+      nickname,
       password: hashedPassword
     });
 
