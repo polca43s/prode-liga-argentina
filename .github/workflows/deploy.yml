@@ -33,3 +33,4 @@ jobs:
         with:
           publish_dir: ./dist/prode-liga-argentina
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
