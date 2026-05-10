@@ -11,18 +11,17 @@ const getFixtureRepository = () => AppDataSource.getRepository(Fixture);
 router.get('/tournament/:tournamentId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { tournamentId } = req.params;
-    const fixtures = await getFixtureRepository().find({
-      where: { tournament: { id: tournamentId as string } },
-      relations: ['partidos', 'partidos.local', 'partidos.visitante'],
-      order: { createdAt: 'ASC' }
-    });
     
-    // Ordenar partidos por el campo 'orden' en cada fixture
-    fixtures.forEach(f => {
-      if (f.partidos) {
-        f.partidos.sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0));
-      }
-    });
+    // Obtener fixtures con partidos ordenados por el campo 'orden' que define el admin
+    const fixtures = await getFixtureRepository()
+      .createQueryBuilder('fixture')
+      .leftJoinAndSelect('fixture.partidos', 'partidos')
+      .leftJoinAndSelect('partidos.local', 'local')
+      .leftJoinAndSelect('partidos.visitante', 'visitante')
+      .where('fixture.tournament_id = :tournamentId', { tournamentId })
+      .orderBy('fixture.createdAt', 'ASC')
+      .addOrderBy('partidos.orden', 'ASC')
+      .getMany();
     
     res.json(fixtures || []);
   } catch (error: any) {

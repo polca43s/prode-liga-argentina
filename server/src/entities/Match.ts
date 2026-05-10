@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Team } from './Team';
 import { Fixture } from './Fixture';
 
@@ -18,6 +18,9 @@ export class Match {
 
   @Column({ default: 0 })
   orden: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @ManyToOne(() => Fixture, fixture => fixture.partidos)
   fixture: Fixture;
