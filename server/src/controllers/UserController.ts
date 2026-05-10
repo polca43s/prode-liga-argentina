@@ -127,7 +127,10 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     user.resetTokenExpiry = expiry;
     await getUserRepository().save(user);
 
-    await mailService.sendPasswordResetEmail(user, token);
+    // Enviar email en segundo plano (sin esperar)
+    mailService.sendPasswordResetEmail(user, token).catch(err => {
+      console.error('Error al enviar email de recuperación:', err);
+    });
 
     res.json({ message: 'Si el email existe, recibirás un link de recuperación.' });
   } catch (error: any) {
