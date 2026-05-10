@@ -61,8 +61,15 @@ export const AppDataSource = new DataSource({
 const PORT = Number(process.env.PORT) || 3001;
 
 AppDataSource.initialize()
-  .then(() => {
+  .then(async () => {
     console.log('Base de datos conectada correctamente');
+    
+    // Agregar columna countThis si no existe
+    try {
+      await AppDataSource.query('ALTER TABLE fixtures ADD COLUMN IF NOT EXISTS "countThis" boolean DEFAULT false');
+      console.log('Columna countThis verificada/creada');
+    } catch (e) { console.log('countThis:', e.message); }
+    
     app.listen(PORT, '0.0.0.0', () => {
       const host = process.env.BASE_URL || 'http://localhost';
       console.log(`Servidor PRODE corriendo en ${host}:${PORT}`);
