@@ -34,15 +34,17 @@ function getGmailClient() {
 }
 
 function createMimeMessage(to: string, subject: string, html: string) {
+  const encodedSubject = Buffer.from(subject, 'utf-8').toString('base64');
   const message = [
     `To: ${to}`,
-    `Subject: ${subject}`,
+    `Subject: =?UTF-8?B?${encodedSubject}?=`,
     'Content-Type: text/html; charset=utf-8',
+    'MIME-Version: 1.0',
     '',
     html
   ].join('\r\n');
   
-  return Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return Buffer.from(message, 'utf-8').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
