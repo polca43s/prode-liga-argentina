@@ -95,7 +95,7 @@ router.get('/my/:fixtureId', authMiddleware, async (req: any, res: Response) => 
   }
 });
 
-// BUSCADOR: Buscar jugadas de otros (Solo si seeAll es true)
+// BUSCADOR: Buscar jugadas de otros (Solo si seeAll es true Y countThis es true)
 router.get('/search', async (req: Request, res: Response) => {
   try {
     const { query, fixtureId } = req.query;
@@ -112,16 +112,29 @@ router.get('/search', async (req: Request, res: Response) => {
       where: { id: fixtureId as string },
       relations: ['tournament']
     });
-    if (!fixture?.seeAll) {
+
+    if (!fixture) {
+      return res.status(404).json({ message: 'Fecha no encontrada' });
+    }
+
+    // Verificar que la fecha esté cerrada Y cuente para el ranking
+    if (!fixture.seeAll || !fixture.countThis) {
       return res.status(403).json({ message: 'Aún no puedes ver las jugadas de los demás.' });
     }
 
+    const whereCondition: any = { fixture: { id: fixtureId as string } };
+    
+    // Si hay búsqueda, agregar filtro por usuario
+    if (query) {
+      whereCondition.user = [
+        { nickname: Like(`%${query}%`) },
+        { nombre: Like(`%${query}%`) },
+        { mail: Like(`%${query}%`) }
+      ];
+    }
+
     const predictions = await getPredictionRepository().find({
-      where: [
-        { fixture: { id: fixtureId as string }, user: { nickname: Like(`%${query}%`), tournaments: { id: fixture.tournament.id } } },
-        { fixture: { id: fixtureId as string }, user: { nombre: Like(`%${query}%`), tournaments: { id: fixture.tournament.id } } },
-        { fixture: { id: fixtureId as string }, user: { mail: Like(`%${query}%`), tournaments: { id: fixture.tournament.id } } }
-      ],
+      where: whereCondition,
       relations: ['user', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
     });
 
@@ -132,12 +145,13 @@ router.get('/search', async (req: Request, res: Response) => {
       let countE = 0;
       let countV = 0;
 
-      p.detalles.forEach(d => {
+      p.detalles.forEach((d: any) => {
         if (d.seleccion.includes('L')) countL++;
         if (d.seleccion.includes('E')) countE++;
         if (d.seleccion.includes('V')) countV++;
 
-        if (d.match.resultado && d.seleccion.includes(d.match.resultado)) {
+        // Solo contar punto si hay resultado Y la selección incluye ese resultado
+        if (d.match?.resultado && d.seleccion.includes(d.match.resultado)) {
           puntos++;
         }
       });
@@ -149,15 +163,19 @@ router.get('/search', async (req: Request, res: Response) => {
       };
     });
 
-    result.sort((a, b) => b.puntos - a.puntos);
+    // Ordenar por puntos, luego visitante, empate, local
+    result.sort((a, b) => {
+      if ((b.puntos || 0) !== (a.puntos || 0)) return (b.puntos || 0) - (a.puntos || 0);
+      if ((b.stats?.V || 0) !== (a.stats?.V || 0)) return (b.stats?.V || 0) - (a.stats?.V || 0);
+      if ((b.stats?.E || 0) !== (a.stats?.E || 0)) return (b.stats?.E || 0) - (a.stats?.E || 0);
+      return (b.stats?.L || 0) - (a.stats?.L || 0);
+    });
 
-    // 2. Guardar en la caché si la fecha está bloqueada
-    if (fixture.seeAll) {
-      searchCache.set(cacheKey, {
-        data: result,
-        expires: Date.now() + SEARCH_CACHE_DURATION
-      });
-    }
+    // 2. Guardar en la caché
+    searchCache.set(cacheKey, {
+      data: result,
+      expires: Date.now() + SEARCH_CACHE_DURATION
+    });
 
     res.json(result);
   } catch (error: any) {
