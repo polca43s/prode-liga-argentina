@@ -1,30 +1,34 @@
-import SibApi from '@sendinblue/client';
+import nodemailer from 'nodemailer';
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'polca@polca.com.ar';
+const GMAIL_USER = process.env.GMAIL_USER;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 const FROM_NAME = 'PRODE Liga Argentina';
 
-let apiInstance: SibApi.TransactionalEmailsApi | null = null;
+let transporter: nodemailer.Transporter | null = null;
 
-if (BREVO_API_KEY) {
-  apiInstance = new SibApi.TransactionalEmailsApi();
-  apiInstance.setApiKey(SibApi.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY);
+if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: GMAIL_USER,
+      pass: GMAIL_APP_PASSWORD,
+    },
+  });
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!apiInstance) {
-    console.warn('BREVO_API_KEY no configurada, saltando envío de email');
+  if (!transporter) {
+    console.warn('GMAIL_USER o GMAIL_APP_PASSWORD no configurados, saltando envío de email');
     return;
   }
 
-  const sendSmtpEmail = new SibApi.SendSmtpEmail();
-  sendSmtpEmail.to = [{ email: to }];
-  sendSmtpEmail.subject = subject;
-  sendSmtpEmail.htmlContent = html;
-  sendSmtpEmail.sender = { email: FROM_EMAIL, name: FROM_NAME };
-
   try {
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    await transporter.sendMail({
+      from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
     console.log(`Email enviado a: ${to} - Asunto: ${subject}`);
   } catch (error) {
     console.error('Error enviando email:', error);
