@@ -207,10 +207,19 @@ export class MatchResultsComponent implements OnInit {
 
   toggleCountThis() {
     this.currentFixture.countThis = !this.currentFixture.countThis;
+    this.loading = true;
     this.fixtureService.updateFixture(this.currentFixture.id, { countThis: this.currentFixture.countThis })
-      .subscribe(() => {
-        const msg = this.currentFixture.countThis ? '✓ Esta fecha ahora CUENTA en el ranking.' : '✗ Esta fecha ya NO cuenta en el ranking.';
-        alert(msg);
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          const msg = this.currentFixture.countThis ? '✓ Esta fecha ahora CUENTA en el ranking.' : '✗ Esta fecha ya NO cuenta en el ranking.';
+          alert(msg);
+        },
+        error: () => {
+          this.loading = false;
+          this.currentFixture.countThis = !this.currentFixture.countThis;
+          alert('Error al guardar. Verifica que la columna exista en la base de datos.');
+        }
       });
   }
 
@@ -219,6 +228,11 @@ export class MatchResultsComponent implements OnInit {
   saveAllResults() {
     this.loading = true;
     const promises = this.currentFixture.partidos.map((m: any) => this.fixtureService.updateMatchResult(m.id, m.resultado).toPromise());
-    Promise.all(promises).then(() => { this.predictionService.recalculateRanking(this.selectedTournamentId).subscribe(() => { alert('Actualizado'); this.loading = false; }); });
+    Promise.all(promises).then(() => { 
+      this.predictionService.recalculateRanking(this.selectedTournamentId).subscribe({
+        next: () => { alert('Actualizado'); this.loading = false; },
+        error: () => { alert('Error al calcular ranking'); this.loading = false; }
+      }); 
+    }).catch(() => { this.loading = false; });
   }
 }
