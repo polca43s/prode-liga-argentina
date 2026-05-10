@@ -148,7 +148,10 @@ export class FixtureManagerComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.tournamentService.getTournaments().subscribe((data: any) => this.tournaments = data);
+    this.tournamentService.getTournaments().subscribe({
+      next: (data: any) => this.tournaments = data,
+      error: (err) => console.error('Error loading tournaments:', err)
+    });
   }
 
   onTournamentChange() { this.loadFixtures(); }
@@ -158,7 +161,13 @@ export class FixtureManagerComponent implements OnInit {
     return tournament?.teams || [];
   }
 
-  loadFixtures() { if (!this.selectedTournamentId) return; this.fixtureService.getFixturesByTournament(this.selectedTournamentId).subscribe((data: any) => this.fixtures = data); }
+  loadFixtures() { 
+    if (!this.selectedTournamentId) return; 
+    this.fixtureService.getFixturesByTournament(this.selectedTournamentId).subscribe({
+      next: (data: any) => this.fixtures = data,
+      error: (err) => console.error('Error loading fixtures:', err)
+    }); 
+  }
   
   createNewFixture() {
     const fixtureData = { 
