@@ -59,10 +59,10 @@ import { PdfService } from '../../core/services/pdf.service';
 
           <!-- BOTONES DESCARGAR PDF -->
           <div class="download-buttons" style="margin: 15px 0; display: flex; gap: 10px;">
-            <button *ngIf="activeTab === 'general' && ranking.length > 0" (click)="downloadGeneralPdf()" class="btn-download">
+            <button *ngIf="activeTab === 'general' && (ranking.length > 0 || displayRanking.length > 0)" (click)="downloadGeneralPdf()" class="btn-download">
               📥 Descargar Tabla General PDF
             </button>
-            <button *ngIf="activeTab === 'fecha' && ranking.length > 0" (click)="downloadFixturePdf()" class="btn-download">
+            <button *ngIf="activeTab === 'fecha' && (ranking.length > 0 || displayRanking.length > 0)" (click)="downloadFixturePdf()" class="btn-download">
               📥 Descargar Posiciones PDF
             </button>
           </div>
