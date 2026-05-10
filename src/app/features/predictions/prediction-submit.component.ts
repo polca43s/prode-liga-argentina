@@ -326,6 +326,7 @@ export class PredictionSubmitComponent implements OnInit {
   selectedFixtureId = '';
   
   mySelections: any[] = [];
+  myPrediction: any = null;
   loading = false;
   
   searchQuery = '';
@@ -390,10 +391,12 @@ export class PredictionSubmitComponent implements OnInit {
 
   loadMyPrediction() {
     this.mySelections = [];
+    this.myPrediction = null;
     if (!this.selectedFixtureId) return;
 
     this.predictionService.getMyPrediction(this.selectedFixtureId).subscribe((data: any) => {
       if (data && data.detalles) {
+        this.myPrediction = data;
         this.mySelections = data.detalles.map((d: any) => ({
           matchId: d.match.id,
           seleccion: d.seleccion
