@@ -68,7 +68,7 @@ AppDataSource.initialize()
     try {
       await AppDataSource.query('ALTER TABLE fixtures ADD COLUMN IF NOT EXISTS "countThis" boolean DEFAULT false');
       console.log('Columna countThis verificada/creada');
-    } catch (e) { console.log('countThis:', e.message); }
+    } catch (e: any) { console.log('countThis:', e.message); }
     
     app.listen(PORT, '0.0.0.0', () => {
       const host = process.env.BASE_URL || 'http://localhost';
