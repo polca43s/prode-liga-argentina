@@ -5,6 +5,26 @@ import { AuthService } from '../services/auth.service';
 @Injectable({
   providedIn: 'root'
 })
+export class LoginGuard implements CanActivate {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  canActivate(): boolean {
+    if (this.authService.isLoggedIn()) {
+      if (this.authService.isAdmin()) {
+        this.router.navigate(['/admin']);
+      } else {
+        this.router.navigate(['/resultados']);
+      }
+      return false;
+    }
+    return true;
+  }
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthGuard implements CanActivate {
   private authService = inject(AuthService);
   private router = inject(Router);

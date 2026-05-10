@@ -12,10 +12,10 @@ import { UserManagerComponent } from './features/admin/users/user-manager.compon
 import { FixtureManagerComponent } from './features/admin/fixtures/fixture-manager.component';
 import { MatchResultsComponent } from './features/admin/results/match-results.component';
 import { PredictionSubmitComponent } from './features/predictions/prediction-submit.component';
-import { AuthGuard, AdminGuard } from './core/guards/auth.guard';
+import { AuthGuard, AdminGuard, LoginGuard } from './core/guards/auth.guard';
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent, canActivate: [LoginGuard] },
   { path: 'register', component: RegisterComponent },
   { path: 'password-recovery', component: PasswordRecoveryComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
