@@ -51,6 +51,11 @@ async function sendEmail(to: string, subject: string, html: string) {
     transporter = await createTransporter();
   }
 
+  if (!transporter) {
+    console.error('No se pudo crear el transporter de email');
+    return;
+  }
+
   try {
     await transporter.sendMail({
       from: `"${FROM_NAME}" <${GMAIL_USER}>`,
