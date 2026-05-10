@@ -54,11 +54,11 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
               <span class="slider round"></span>
             </label>
             <span class="status-label" [class.locked]="currentFixture.countThis">
-              {{ currentFixture.countThis ? '📊 Cuenta en Ranking' : '⏳ No cuenta en Ranking' }}
+              {{ currentFixture.countThis ? '✅ Contar Fecha' : '⏳ No cuenta' }}
             </span>
           </div>
           <p class="status-desc">
-            {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Las predicciones NO cuentan hasta activar esta opción.' }}
+            {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Activar para que cuente en el ranking.' }}
           </p>
         </div>
 
