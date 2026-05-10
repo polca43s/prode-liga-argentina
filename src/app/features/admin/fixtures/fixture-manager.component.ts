@@ -189,11 +189,14 @@ export class FixtureManagerComponent implements OnInit {
   getAvailableTeams(fixture: Fixture, excludeId?: string): Team[] {
     const tournamentTeams = this.getSelectedTournamentTeams();
     const usedTeamIds = new Set<string>();
+    
+    // Filtrar equipos ya usados en este fixture (para que no se repitan dentro del mismo fixture)
     fixture.partidos?.forEach((m: any) => { 
       if (m.local) usedTeamIds.add(m.local.id); 
       if (m.visitante) usedTeamIds.add(m.visitante.id); 
     });
 
+    // Mostrar todos los equipos del tournament excepto los ya usados en este fixture y el excluido
     return tournamentTeams.filter(t => !usedTeamIds.has(t.id) && t.id !== excludeId);
   }
 
