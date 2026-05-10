@@ -131,10 +131,14 @@ export class MailService {
       
       const localName = d.match?.local?.nombre || 'Local';
       const visitName = d.match?.visitante?.nombre || 'Visitante';
+      const localEscudo = d.match?.local?.escudo || '';
+      const visitEscudo = d.match?.visitante?.escudo || '';
       
       const isL = d.seleccion.includes('L') ? 'X' : '';
       const isE = d.seleccion.includes('E') ? 'X' : '';
       const isV = d.seleccion.includes('V') ? 'X' : '';
+
+      const escudoHtml = (escudo: string) => escudo ? `<img src="${escudo}" style="height: 25px; vertical-align: middle; margin-left: 8px;">` : '';
 
       matchesHtml += `
         <tr style="background-color: ${bgColor}; font-size: 15px; font-weight: 600; color: #333;">
@@ -142,13 +146,13 @@ export class MailService {
             ${isL}
           </td>
           <td style="border: 1px solid ${darkGreenBorder}; text-align: right; padding: 10px;">
-            ${localName}
+            ${localName}${escudoHtml(localEscudo)}
           </td>
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isE}
           </td>
           <td style="border: 1px solid ${darkGreenBorder}; text-align: left; padding: 10px;">
-            ${visitName}
+            ${escudoHtml(visitEscudo)}${visitName}
           </td>
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isV}
