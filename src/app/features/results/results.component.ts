@@ -62,7 +62,7 @@ import { PdfService } from '../../core/services/pdf.service';
             <button *ngIf="activeTab === 'general' && (ranking.length > 0 || displayRanking.length > 0)" (click)="downloadGeneralPdf()" class="btn-download">
               📥 Descargar Tabla General PDF
             </button>
-            <button *ngIf="activeTab === 'fecha' && (ranking.length > 0 || displayRanking.length > 0)" (click)="downloadFixturePdf()" class="btn-download">
+            <button *ngIf="activeTab === 'fecha' && selectedFixtureId && (ranking.length > 0 || displayRanking.length > 0)" (click)="downloadFixturePdf()" class="btn-download">
               📥 Descargar Posiciones PDF
             </button>
           </div>
