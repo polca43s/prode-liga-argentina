@@ -77,9 +77,9 @@ import { Team } from '../../../core/models/prode.models';
     .btn-back { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
 
     .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-    .team-item { padding: 25px; text-align: center; position: relative; transition: 0.3s; }
+    .team-item { padding: 15px; text-align: center; position: relative; transition: 0.3s; }
     .team-item.editing { border-color: var(--primary); background: rgba(116, 172, 223, 0.1); }
-    .team-escudo { width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; }
+    .team-escudo { width: 40px; height: 40px; object-fit: contain; margin-bottom: 10px; }
     .team-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
     .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.6; }
     .btn-icon:hover { opacity: 1; transform: scale(1.1); }
