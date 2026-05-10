@@ -357,7 +357,10 @@ export class PredictionSubmitComponent implements OnInit {
       detalles = this.currentFixture.partidos.map((m: any) => {
         const sel = this.mySelections.find(s => s.matchId === m.id);
         return {
-          match: m,
+          match: {
+            local: { nombre: m.local?.nombre },
+            visitante: { nombre: m.visitante?.nombre }
+          },
           seleccion: sel ? sel.seleccion : ''
         };
       });

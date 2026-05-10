@@ -75,29 +75,32 @@ export class PdfService {
     doc.text(`Jugador: ${user?.nickname}`, 14, 40);
     doc.text(`Fecha de carga: ${new Date().toLocaleString('es-AR')}`, 14, 48);
 
+    // Armar tabla con formato similar al mail: L, Local, E, Visitante, V
     const tableData = detalles.map((d: any) => {
       const local = d.match?.local?.nombre || 'Local';
       const visit = d.match?.visitante?.nombre || 'Visitante';
-      const sel = d.seleccion;
+      const sel = d.seleccion || '';
       return [
-        local,
-        visit,
         sel.includes('L') ? 'X' : '',
+        local,
         sel.includes('E') ? 'X' : '',
+        visit,
         sel.includes('V') ? 'X' : ''
       ];
     });
 
     autoTable(doc, {
-      head: [['Local', 'Visitante', 'L', 'E', 'V']],
+      head: [['L', 'LOCAL', 'E', 'VISITANTE', 'V']],
       body: tableData,
       startY: 58,
       styles: { fontSize: 10 },
       headStyles: { fillColor: [25, 135, 84] },
       columnStyles: {
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'center' }
+        0: { halign: 'center', cellWidth: 15 },
+        1: { halign: 'right' },
+        2: { halign: 'center', cellWidth: 15 },
+        3: { halign: 'left' },
+        4: { halign: 'center', cellWidth: 15 }
       }
     });
 
