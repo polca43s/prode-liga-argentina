@@ -5,6 +5,7 @@ import { TournamentService } from '../../core/services/tournament.service';
 import { FixtureService } from '../../core/services/fixture.service';
 import { PredictionService } from '../../core/services/prediction.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PdfService } from '../../core/services/pdf.service';
 import { Tournament, Fixture, Match } from '../../core/models/prode.models';
 import { RouterModule } from '@angular/router';
 
@@ -164,6 +165,12 @@ import { RouterModule } from '@angular/router';
             </p>
             <button (click)="savePrediction()" class="btn-primary w-full" [disabled]="loading || !isValidJugada()">
               {{ loading ? 'Guardando...' : 'Guardar Jugada' }}
+            </button>
+            <button *ngIf="myPrediction && myPrediction.detalles && myPrediction.detalles.length > 0" 
+                    (click)="downloadMyPredictionPdf()" 
+                    class="btn-secondary w-full" 
+                    style="margin-top: 10px;">
+              📥 Descargar Mi Jugada PDF
             </button>
           </div>
         </div>
@@ -331,8 +338,16 @@ export class PredictionSubmitComponent implements OnInit {
     private tournamentService: TournamentService,
     private fixtureService: FixtureService,
     private predictionService: PredictionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private pdfService: PdfService
   ) {}
+
+  downloadMyPredictionPdf() {
+    if (!this.myPrediction || !this.myPrediction.detalles) return;
+    const fixture = this.fixtures.find(f => f.id === this.selectedFixtureId);
+    const user = this.authService.getCurrentUser();
+    this.pdfService.generatePredictionPdf(user, fixture, this.myPrediction.detalles, fixture?.nombre || '');
+  }
 
   ngOnInit() {
     const user = this.authService.getCurrentUser();

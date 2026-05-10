@@ -70,6 +70,12 @@ AppDataSource.initialize()
       console.log('Columna countThis verificada/creada');
     } catch (e: any) { console.log('countThis:', e.message); }
     
+    // Agregar columna orden en matches si no existe
+    try {
+      await AppDataSource.query('ALTER TABLE matches ADD COLUMN IF NOT EXISTS orden integer DEFAULT 0');
+      console.log('Columna orden en matches verificada/creada');
+    } catch (e: any) { console.log('orden:', e.message); }
+    
     app.listen(PORT, '0.0.0.0', () => {
       const host = process.env.BASE_URL || 'http://localhost';
       console.log(`Servidor PRODE corriendo en ${host}:${PORT}`);

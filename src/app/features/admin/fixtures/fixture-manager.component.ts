@@ -198,7 +198,14 @@ export class FixtureManagerComponent implements OnInit {
   }
 
   addMatchToFixture(fixtureId: string) {
-    const matchData = { fixture: { id: fixtureId }, local: { id: this.newMatch.localId }, visitante: { id: this.newMatch.visitanteId } };
+    const fixture = this.fixtures.find(f => f.id === fixtureId);
+    const orden = (fixture?.partidos?.length || 0) + 1;
+    const matchData = { 
+      fixture: { id: fixtureId }, 
+      local: { id: this.newMatch.localId }, 
+      visitante: { id: this.newMatch.visitanteId },
+      orden
+    };
     this.fixtureService.createMatch(matchData).subscribe(() => { this.newMatch = { localId: '', visitanteId: '' }; this.loadFixtures(); });
   }
   

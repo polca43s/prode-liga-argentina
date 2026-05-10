@@ -38,7 +38,8 @@ export interface Match {
   id: string;
   local: Team;
   visitante: Team;
-  resultado?: string; // El resultado real oficial
+  resultado?: string;
+  orden?: number;
 }
 
 export interface Fixture {

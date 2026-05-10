@@ -16,6 +16,14 @@ router.get('/tournament/:tournamentId', authMiddleware, async (req: Request, res
       relations: ['partidos', 'partidos.local', 'partidos.visitante'],
       order: { createdAt: 'ASC' }
     });
+    
+    // Ordenar partidos por el campo 'orden' en cada fixture
+    fixtures.forEach(f => {
+      if (f.partidos) {
+        f.partidos.sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0));
+      }
+    });
+    
     res.json(fixtures || []);
   } catch (error: any) {
     console.error('Error al obtener fechas:', error);

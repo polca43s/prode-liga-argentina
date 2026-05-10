@@ -7,6 +7,7 @@ import { PredictionService } from '../../core/services/prediction.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Tournament, Fixture } from '../../core/models/prode.models';
 import { RouterModule } from '@angular/router';
+import { PdfService } from '../../core/services/pdf.service';
 
 @Component({
   selector: 'app-results',
@@ -54,6 +55,16 @@ import { RouterModule } from '@angular/router';
 
           <div class="search-bar" *ngIf="activeTab === 'general' || (activeTab === 'fecha' && currentFixture?.seeAll)">
             <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Buscar jugador...">
+          </div>
+
+          <!-- BOTONES DESCARGAR PDF -->
+          <div class="download-buttons" style="margin: 15px 0; display: flex; gap: 10px;">
+            <button *ngIf="activeTab === 'general' && ranking.length > 0" (click)="downloadGeneralPdf()" class="btn-download">
+              📥 Descargar Tabla General PDF
+            </button>
+            <button *ngIf="activeTab === 'fecha' && ranking.length > 0" (click)="downloadFixturePdf()" class="btn-download">
+              📥 Descargar Posiciones PDF
+            </button>
           </div>
 
           <!-- MODO FECHA PRIVADA -->
@@ -126,6 +137,8 @@ import { RouterModule } from '@angular/router';
     .logged-nickname { color: rgba(255,255,255,0.75); font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 6px 14px; border-radius: 20px; }
     .btn-logout-user { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff4d4d; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
     .btn-logout-user:hover { background: rgba(220, 53, 69, 0.2); transform: translateY(-2px); }
+    .btn-download { background: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); color: #28a745; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .btn-download:hover { background: rgba(40, 167, 69, 0.3); }
     
     .global-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
     .global-tab-btn { flex: 1; padding: 15px; border: none; background: rgba(116, 172, 223, 0.1); color: var(--primary); cursor: pointer; border-radius: 12px; font-weight: 700; font-size: 1rem; transition: 0.3s; }
@@ -219,8 +232,19 @@ export class ResultsComponent implements OnInit {
     private tournamentService: TournamentService,
     private fixtureService: FixtureService,
     private predictionService: PredictionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private pdfService: PdfService
   ) {}
+
+  downloadGeneralPdf() {
+    const tournament = this.tournaments.find(t => t.id === this.selectedTournamentId);
+    this.pdfService.generateGeneralRankingPdf(this.ranking, tournament?.nombre || 'Torneo');
+  }
+
+  downloadFixturePdf() {
+    const fixture = this.fixtures.find(f => f.id === this.selectedFixtureId);
+    this.pdfService.generateFixtureRankingPdf(this.ranking, fixture?.nombre || 'Fecha');
+  }
 
   logout() {
     this.authService.logout();

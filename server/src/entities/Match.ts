@@ -16,6 +16,9 @@ export class Match {
   @Column({ nullable: true })
   resultado: string; // 'L' (Local), 'E' (Empate) o 'V' (Visitante)
 
+  @Column({ default: 0 })
+  orden: number;
+
   @ManyToOne(() => Fixture, fixture => fixture.partidos)
   fixture: Fixture;
 }

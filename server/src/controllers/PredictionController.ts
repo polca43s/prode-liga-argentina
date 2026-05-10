@@ -68,7 +68,9 @@ router.post('/', authMiddleware, async (req: any, res: Response) => {
       where: { id: prediction.id },
       relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
     }).then((fullPrediction: any) => {
-      if (fullPrediction) {
+      if (fullPrediction && fullPrediction.detalles) {
+        // Ordenar detalles por el orden del partido
+        fullPrediction.detalles.sort((a: any, b: any) => (a.match?.orden || 0) - (b.match?.orden || 0));
         mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
       }
     }).catch(err => console.error("Error enviando comprobante de jugada:", err));
@@ -136,6 +138,13 @@ router.get('/search', async (req: Request, res: Response) => {
     const predictions = await getPredictionRepository().find({
       where: whereCondition,
       relations: ['user', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
+    });
+
+    // Ordenar detalles de cada predicción por el campo 'orden' del match
+    predictions.forEach((p: any) => {
+      if (p.detalles) {
+        p.detalles.sort((a: any, b: any) => (a.match?.orden || 0) - (b.match?.orden || 0));
+      }
     });
 
     // Mapear para calcular puntos y estadísticas L/E/V
