@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 
 const GMAIL_USER = process.env.GMAIL_USER;
@@ -8,61 +7,61 @@ const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 const FROM_NAME = 'PRODE Liga Argentina';
 
 let oAuth2Client: any = null;
-let transporter: nodemailer.Transporter | null = null;
+let gmail: any = null;
 
-async function createTransporter() {
+function getGmailClient() {
   if (!GMAIL_USER || !GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    console.warn('Faltan credenciales de Gmail API, saltando envío de email');
+    console.warn('Faltan credenciales de Gmail API');
     return null;
   }
 
-  oAuth2Client = new google.auth.OAuth2(
-    GMAIL_CLIENT_ID,
-    GMAIL_CLIENT_SECRET,
-    'https://developers.google.com/oauthplayground'
-  );
+  if (!oAuth2Client) {
+    oAuth2Client = new google.auth.OAuth2(
+      GMAIL_CLIENT_ID,
+      GMAIL_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
+    oAuth2Client.setCredentials({
+      refresh_token: GMAIL_REFRESH_TOKEN
+    });
+  }
 
-  oAuth2Client.setCredentials({
-    refresh_token: GMAIL_REFRESH_TOKEN
-  });
+  if (!gmail) {
+    gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+  }
 
-  const accessToken = await oAuth2Client.getAccessToken();
+  return gmail;
+}
 
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      type: 'OAuth2',
-      user: GMAIL_USER,
-      clientId: GMAIL_CLIENT_ID,
-      clientSecret: GMAIL_CLIENT_SECRET,
-      refreshToken: GMAIL_REFRESH_TOKEN,
-      accessToken: accessToken.token
-    }
-  });
+function createMimeMessage(to: string, subject: string, html: string) {
+  const message = [
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    'Content-Type: text/html; charset=utf-8',
+    '',
+    html
+  ].join('\r\n');
+  
+  return Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!GMAIL_USER || !GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    console.warn('Faltan credenciales de Gmail API, saltando envío de email');
-    return;
-  }
-
-  if (!transporter) {
-    transporter = await createTransporter();
-  }
-
-  if (!transporter) {
-    console.error('No se pudo crear el transporter de email');
+  const gmail = getGmailClient();
+  if (!gmail) {
+    console.warn('Gmail client no disponible, saltando envío de email');
     return;
   }
 
   try {
-    await transporter.sendMail({
-      from: `"${FROM_NAME}" <${GMAIL_USER}>`,
-      to,
-      subject,
-      html,
+    const encodedMessage = createMimeMessage(to, subject, html);
+    
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage
+      }
     });
+    
     console.log(`Email enviado a: ${to} - Asunto: ${subject}`);
   } catch (error) {
     console.error('Error enviando email:', error);
