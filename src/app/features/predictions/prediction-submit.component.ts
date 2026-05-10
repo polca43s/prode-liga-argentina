@@ -166,7 +166,7 @@ import { RouterModule } from '@angular/router';
             <button (click)="savePrediction()" class="btn-primary w-full" [disabled]="loading || !isValidJugada()">
               {{ loading ? 'Guardando...' : 'Guardar Jugada' }}
             </button>
-            <button *ngIf="myPrediction && myPrediction.detalles && myPrediction.detalles.length > 0" 
+            <button *ngIf="currentFixture && currentFixture.partidos && currentFixture.partidos.length > 0" 
                     (click)="downloadMyPredictionPdf()" 
                     class="btn-secondary w-full" 
                     style="margin-top: 10px;">
@@ -298,6 +298,10 @@ import { RouterModule } from '@angular/router';
     .empty-state h2 { margin-bottom: 10px; color: #fff; }
     .empty-state p { color: var(--text-muted); margin-bottom: 30px; }
 
+    .w-full { width: 100%; }
+    .btn-secondary { background: rgba(108, 117, 125, 0.2); border: 1px solid rgba(108, 117, 125, 0.5); color: #fff; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+    .btn-secondary:hover { background: rgba(108, 117, 125, 0.3); }
+
     /* RESPONSIVE DESIGN */
     @media (max-width: 768px) {
       .prediction-container { padding: 5px; }
@@ -344,10 +348,26 @@ export class PredictionSubmitComponent implements OnInit {
   ) {}
 
   downloadMyPredictionPdf() {
-    if (!this.myPrediction || !this.myPrediction.detalles) return;
+    let detalles: any[] = [];
+    
+    if (this.myPrediction && this.myPrediction.detalles && this.myPrediction.detalles.length > 0) {
+      detalles = this.myPrediction.detalles;
+    } else if (this.mySelections.length > 0 && this.currentFixture) {
+      // Si no hay prediction guardada pero hay selecciones actuales, usar esas
+      detalles = this.currentFixture.partidos.map((m: any) => {
+        const sel = this.mySelections.find(s => s.matchId === m.id);
+        return {
+          match: m,
+          seleccion: sel ? sel.seleccion : ''
+        };
+      });
+    }
+    
+    if (detalles.length === 0) return;
+    
     const fixture = this.fixtures.find(f => f.id === this.selectedFixtureId);
     const user = this.authService.getCurrentUser();
-    this.pdfService.generatePredictionPdf(user, fixture, this.myPrediction.detalles, fixture?.nombre || '');
+    this.pdfService.generatePredictionPdf(user, fixture, detalles, fixture?.nombre || '');
   }
 
   ngOnInit() {
