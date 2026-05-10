@@ -85,8 +85,8 @@ import { RouterModule } from '@angular/router';
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let p of displayRanking; let i = index" [class.top-three]="i < 3">
-                  <td class="rank">#{{ i + 1 }}</td>
+                <tr *ngFor="let p of displayRanking; let i = index" [class.top-three]="getOriginalPosition(p) < 3">
+                  <td class="rank">#{{ getOriginalPosition(p) }}</td>
                   <td class="player">
                     <div class="player-info">
                       <span class="nick" [title]="p.user.nombre + (p.user.apellido ? ' ' + p.user.apellido.charAt(0) + '.' : '')">{{ p.user.nickname }}</span>
@@ -263,25 +263,53 @@ export class ResultsComponent implements OnInit {
   loadFixtureRanking() {
     if (!this.selectedFixtureId) return;
     this.predictionService.searchPredictions(this.searchQuery, this.selectedFixtureId).subscribe(data => {
-      this.ranking = data;
-      this.displayRanking = data;
+      this.ranking = data.sort((a, b) => {
+        const aPuntos = a.puntos || 0;
+        const bPuntos = b.puntos || 0;
+        if (bPuntos !== aPuntos) return bPuntos - aPuntos;
+        const aV = a.stats?.V || 0;
+        const bV = b.stats?.V || 0;
+        if (bV !== aV) return bV - aV;
+        const aE = a.stats?.E || 0;
+        const bE = b.stats?.E || 0;
+        if (bE !== aE) return bE - aE;
+        const aL = a.stats?.L || 0;
+        const bL = b.stats?.L || 0;
+        return bL - aL;
+      });
+      this.displayRanking = [...this.ranking];
     });
   }
 
   loadGeneralRanking() {
     if (!this.selectedTournamentId) return;
     this.predictionService.getGeneralRanking(this.selectedTournamentId).subscribe(data => {
-      this.ranking = data;
-      this.displayRanking = data;
+      this.ranking = data.sort((a, b) => {
+        if ((b.puntos || 0) !== (a.puntos || 0)) return (b.puntos || 0) - (a.puntos || 0);
+        if ((b.fechasGanadas || 0) !== (a.fechasGanadas || 0)) return (b.fechasGanadas || 0) - (a.fechasGanadas || 0);
+        if ((b.visita || 0) !== (a.visita || 0)) return (b.visita || 0) - (a.visita || 0);
+        if ((b.empate || 0) !== (a.empate || 0)) return (b.empate || 0) - (a.empate || 0);
+        return (b.local || 0) - (a.local || 0);
+      });
+      this.displayRanking = [...this.ranking];
     });
   }
 
   onSearch() {
-    const q = this.searchQuery.toLowerCase();
+    const q = this.searchQuery.toLowerCase().trim();
+    if (!q) {
+      this.displayRanking = [...this.ranking];
+      return;
+    }
     this.displayRanking = this.ranking.filter(r => 
       r.user.nickname.toLowerCase().includes(q) || 
       r.user.nombre.toLowerCase().includes(q)
     );
+  }
+
+  getOriginalPosition(player: any): number {
+    const index = this.ranking.findIndex(r => r.user.id === player.user.id);
+    return index + 1;
   }
 
   shouldShowTable(): boolean {
