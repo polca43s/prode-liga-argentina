@@ -13,6 +13,9 @@ export class Fixture {
   @Column({ default: false })
   seeAll: boolean;
 
+  @Column({ default: false })
+  countThis: boolean;
+
   @ManyToOne(() => Tournament)
   tournament: Tournament;
 

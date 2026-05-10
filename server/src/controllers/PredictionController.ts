@@ -6,7 +6,7 @@ import { Fixture } from '../entities/Fixture';
 import { User } from '../entities/User';
 import { Tournament } from '../entities/Tournament';
 import { Standing } from '../entities/Standing';
-import { Like } from 'typeorm';
+import { Like, In } from 'typeorm';
 
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { MailService } from '../services/MailService';
@@ -204,11 +204,26 @@ router.post('/recalculate/:tournamentId', async (req: Request, res: Response) =>
     const tournament = await AppDataSource.getRepository(Tournament).findOneBy({ id: tournamentId as string });
     if (!tournament) return res.status(404).json({ message: 'Torneo no encontrado' });
 
-    // 2. Obtener todas las predicciones del torneo
-    const predictions = await getPredictionRepository().find({
-      where: { fixture: { tournament: { id: tournamentId as string } } },
-      relations: ['user', 'detalles', 'detalles.match', 'fixture']
+    // 2. Obtener los fixtures del torneo que cuentan para el ranking (countThis = true)
+    const fixturesQueCuentan = await AppDataSource.getRepository(Fixture).find({
+      where: { tournament: { id: tournamentId as string }, countThis: true }
     });
+
+    if (fixturesQueCuentan.length === 0) {
+      return res.status(400).json({ message: 'No hay fechas que cuenten para el ranking. Activa al menos una.' });
+    }
+
+    const fixtureIdsQueCuentan = fixturesQueCuentan.map(f => f.id);
+
+    // 3. Obtener todas las predicciones del torneo (solo de fixtures con countThis = true)
+    const predictions = await getPredictionRepository()
+      .createQueryBuilder('prediction')
+      .innerJoinAndSelect('prediction.fixture', 'fixture')
+      .innerJoinAndSelect('prediction.user', 'user')
+      .leftJoinAndSelect('prediction.detalles', 'detalles')
+      .leftJoinAndSelect('detalles.match', 'match')
+      .where('fixture.id IN (:...fixtureIds)', { fixtureIds: fixtureIdsQueCuentan })
+      .getMany();
 
     const userStats: any = {};
     const fixtureWinners: any = {};

@@ -205,7 +205,7 @@ export class ResultsComponent implements OnInit {
   fixtures: Fixture[] = [];
   currentFixture: any = null;
   
-  activeTab: 'fecha' | 'general' = 'fecha';
+  activeTab: 'fecha' | 'general' = 'general';
   selectedTournamentId = '';
   selectedFixtureId = '';
   searchQuery = '';

@@ -47,6 +47,7 @@ export interface Fixture {
   tournamentId: string;
   partidos: Match[];
   seeAll: boolean; // Si los usuarios pueden ver las jugadas de otros
+  countThis: boolean; // Si cuenta para el ranking general
 }
 
 export interface Prediction {

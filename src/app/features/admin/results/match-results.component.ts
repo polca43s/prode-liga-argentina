@@ -47,6 +47,19 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
           <p class="status-desc">
             {{ currentFixture.seeAll ? 'Los usuarios ya no pueden editar sus jugadas.' : 'Los usuarios aún pueden editar sus jugadas.' }}
           </p>
+
+          <div class="visibility-toggle" style="margin-top: 15px;">
+            <label class="switch">
+              <input type="checkbox" [checked]="currentFixture.countThis" (change)="toggleCountThis()">
+              <span class="slider round"></span>
+            </label>
+            <span class="status-label" [class.locked]="currentFixture.countThis">
+              {{ currentFixture.countThis ? '📊 Cuenta en Ranking' : '⏳ No cuenta en Ranking' }}
+            </span>
+          </div>
+          <p class="status-desc">
+            {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Las predicciones NO cuentan hasta activar esta opción.' }}
+          </p>
         </div>
 
         <div *ngIf="currentFixture" class="results-table">
@@ -189,6 +202,15 @@ export class MatchResultsComponent implements OnInit {
       .subscribe(() => {
         const msg = this.currentFixture.seeAll ? 'Fecha CERRADA: Ya nadie puede editar.' : 'Fecha POR JUGAR: Usuarios pueden editar.';
         console.log(msg);
+      });
+  }
+
+  toggleCountThis() {
+    this.currentFixture.countThis = !this.currentFixture.countThis;
+    this.fixtureService.updateFixture(this.currentFixture.id, { countThis: this.currentFixture.countThis })
+      .subscribe(() => {
+        const msg = this.currentFixture.countThis ? '✓ Esta fecha ahora CUENTA en el ranking.' : '✗ Esta fecha ya NO cuenta en el ranking.';
+        alert(msg);
       });
   }
 
