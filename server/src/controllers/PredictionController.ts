@@ -69,8 +69,14 @@ router.post('/', authMiddleware, async (req: any, res: Response) => {
       relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
     }).then((fullPrediction: any) => {
       if (fullPrediction && fullPrediction.detalles) {
-        // Ordenar detalles por el orden del partido
-        fullPrediction.detalles.sort((a: any, b: any) => (a.match?.orden || 0) - (b.match?.orden || 0));
+        // Ordenar detalles por el orden del partido, luego por ID
+        fullPrediction.detalles.sort((a: any, b: any) => {
+          const ordenA = a.match?.orden ?? 0;
+          const ordenB = b.match?.orden ?? 0;
+          if (ordenA !== ordenB) return ordenA - ordenB;
+          // Si el orden es igual o 0, usar el ID para mantener orden consistente
+          return (a.match?.id || '').localeCompare(b.match?.id || '');
+        });
         mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
       }
     }).catch(err => console.error("Error enviando comprobante de jugada:", err));
