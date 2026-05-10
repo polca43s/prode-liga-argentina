@@ -20,7 +20,7 @@ export const authMiddleware = (req: any, res: Response, next: NextFunction) => {
 };
 
 export const adminMiddleware = (req: any, res: Response, next: NextFunction) => {
-  if (!req.user || req.user.tipo !== 'ADMIN') {
+  if (!req.user || req.user.role !== 'ADMIN') {
     return res.status(403).json({ message: 'Acceso denegado. Se requiere rol de administrador.' });
   }
   next();
