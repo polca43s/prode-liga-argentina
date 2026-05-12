@@ -287,18 +287,6 @@ export class FixtureManagerComponent implements OnInit {
     );
   }
 
-  getAvailableTeams(fixture: Fixture, excludeId?: string): Team[] {
-    const tournamentTeams = this.getSelectedTournamentTeams();
-    const usedTeamIds = new Set<string>();
-
-    fixture.partidos?.forEach((m: any) => {
-      if (m.local) usedTeamIds.add(m.local.id);
-      if (m.visitante) usedTeamIds.add(m.visitante.id);
-    });
-
-    return tournamentTeams.filter(t => !usedTeamIds.has(t.id) && t.id !== excludeId);
-  }
-
   getSelectedTeamById(id: string): Team | undefined {
     return this.selectedTournamentTeams.find(t => t.id === id);
   }
