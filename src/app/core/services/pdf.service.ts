@@ -54,11 +54,7 @@ ranking.forEach((r: any, i: number) => {
       doc.text(r.user?.nickname || '-', 22, y + 1, { align: 'left' });
       doc.text(`${r.puntos || 0}`, 85, y + 1, { align: 'center' });
 
-      if ((r.fechasGanadas || 0) > 0) {
-        doc.text(`${r.fechasGanadas} \u{1F3C6}`, 105, y + 1, { align: 'center' });
-      } else {
-        doc.text('0', 105, y + 1, { align: 'center' });
-      }
+      doc.text(`+${r.fechasGanadas || 0}`, 105, y + 1, { align: 'center' });
 
       doc.text(`${r.visita || 0}`, 125, y + 1, { align: 'center' });
       doc.text(`${r.empate || 0}`, 145, y + 1, { align: 'center' });
@@ -118,7 +114,7 @@ ranking.forEach((r: any, i: number) => {
       doc.text(`${r.stats?.L || 0}`, 130, y + 1, { align: 'center' });
 
       if (isWinner) {
-        doc.text('\u{1F3C6}', 150, y + 1, { align: 'center' });
+        doc.text(`\u2713`, 150, y + 1, { align: 'center' });
       } else {
         doc.text('', 150, y + 1, { align: 'center' });
       }
