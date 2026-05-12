@@ -16,11 +16,11 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="header-top">
             <span class="badge">Panel de Control</span>
             <div class="user-session">
-              <span class="logged-nickname" *ngIf="currentUser()">👤 {{ currentUser()?.nickname }}</span>
-              <button (click)="logout()" class="btn-logout">Cerrar Sesión 🚪</button>
+              <span class="logged-nickname" *ngIf="currentUser()">{{ currentUser()?.nickname }}</span>
+              <button (click)="logout()" class="btn-logout">Cerrar Sesion</button>
             </div>
           </div>
-          <h1>Administración</h1>
+          <h1>Administracion</h1>
           <p>Gestiona el torneo y los usuarios del PRODE</p>
         </header>
 
@@ -28,7 +28,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <a routerLink="/admin/tournaments" class="action-card">
             <div class="icon">🏆</div>
             <div class="content">
-              <h3>Gestión de Torneos</h3>
+              <h3>Gestion de Torneos</h3>
               <p>Crea y edita ligas o copas</p>
             </div>
           </a>
@@ -36,7 +36,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <a routerLink="/admin/teams" class="action-card">
             <div class="icon">🛡️</div>
             <div class="content">
-              <h3>Gestión de Equipos</h3>
+              <h3>Gestion de Equipos</h3>
               <p>Carga escudos y nombres de clubes</p>
             </div>
           </a>
@@ -53,14 +53,14 @@ import { AuthService } from '../../../core/services/auth.service';
             <div class="icon">🏁</div>
             <div class="content">
               <h3>Cargar Resultados</h3>
-              <p>Define quién ganó cada partido</p>
+              <p>Define quien gano cada partido</p>
             </div>
           </a>
 
           <a routerLink="/admin/users" class="action-card">
             <div class="icon">👥</div>
             <div class="content">
-              <h3>Gestión de Usuarios</h3>
+              <h3>Gestion de Usuarios</h3>
               <p>Gestiona roles y permisos</p>
             </div>
           </a>
@@ -117,6 +117,7 @@ import { AuthService } from '../../../core/services/auth.service';
       .content p { font-size: 0.8rem; }
       .footer-stats { flex-direction: column; gap: 20px; text-align: center; }
     }
+  `]
 })
 export class AdminDashboardComponent implements OnInit {
   userCount = 0;
