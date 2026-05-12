@@ -77,35 +77,55 @@ export class PdfService {
 
     const startY = 58;
 
-    detalles.forEach((d: any, index: number) => {
-      const y = startY + (index * 12);
+    const headerY = startY - 6;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('L', 18, headerY, { align: 'center' });
+    doc.text('LOCAL', 58, headerY, { align: 'right' });
+    doc.text('E', 98, headerY, { align: 'center' });
+    doc.text('VISITANTE', 142, headerY, { align: 'left' });
+    doc.text('V', 188, headerY, { align: 'center' });
 
-      doc.setFillColor(240, 240, 240);
-      if (index % 2 === 1) doc.setFillColor(255, 255, 255);
-      doc.rect(14, y - 4, 182, 10, 'F');
+    doc.setLineWidth(0.3);
+    doc.line(14, startY - 3, 196, startY - 3);
+
+    detalles.forEach((d: any, index: number) => {
+      const y = startY + 6 + (index * 14);
+
+      if (index % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+      } else {
+        doc.setFillColor(255, 255, 255);
+      }
+      doc.rect(14, y - 5, 182, 10, 'F');
 
       doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
 
-      doc.text(d.seleccion.includes('L') ? 'X' : '', 20, y + 2, { align: 'center' });
+      const localSelected = d.seleccion.includes('L') ? 'X' : '';
+      const empSelected = d.seleccion.includes('E') ? 'X' : '';
+      const visitSelected = d.seleccion.includes('V') ? 'X' : '';
 
-      const localImg = d.match?.local?.escudo;
-      if (localImg) {
-        try { doc.addImage(localImg, 'PNG', 30, y - 3, 8, 8); } catch {}
-      }
+      doc.text(localSelected, 18, y + 2, { align: 'center' });
 
       doc.text(d.match?.local?.nombre || 'Local', 70, y + 2, { align: 'right' });
 
-      doc.text(d.seleccion.includes('E') ? 'X' : '', 110, y + 2, { align: 'center' });
-
-      const visitImg = d.match?.visitante?.escudo;
-      if (visitImg) {
-        try { doc.addImage(visitImg, 'PNG', 120, y - 3, 8, 8); } catch {}
+      const localEscudo = d.match?.local?.escudo;
+      if (localEscudo) {
+        try { doc.addImage(localEscudo, 'PNG', 72, y - 4, 10, 10); } catch {}
       }
 
-      doc.text(d.match?.visitante?.nombre || 'Visitante', 160, y + 2, { align: 'left' });
+      doc.text(empSelected, 98, y + 2, { align: 'center' });
 
-      doc.text(d.seleccion.includes('V') ? 'X' : '', 190, y + 2, { align: 'center' });
+      const visitEscudo = d.match?.visitante?.escudo;
+      if (visitEscudo) {
+        try { doc.addImage(visitEscudo, 'PNG', 106, y - 4, 10, 10); } catch {}
+      }
+
+      doc.text(d.match?.visitante?.nombre || 'Visitante', 130, y + 2, { align: 'left' });
+
+      doc.text(visitSelected, 188, y + 2, { align: 'center' });
     });
 
     doc.save(`mi-jugada-${fixture?.nombre || fecha}.pdf`);
