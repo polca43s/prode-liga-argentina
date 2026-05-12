@@ -152,7 +152,7 @@ export class MailService {
             ${isE}
           </td>
           <td style="border: 1px solid ${darkGreenBorder}; text-align: left; padding: 10px;">
-            ${escudoHtml(visitEscudo)}${visitName}
+            ${escudoHtml(visitEscudo)} ${visitName}
           </td>
           <td style="background-color: ${greenBg}; border: 1px solid ${darkGreenBorder}; text-align: center; font-weight: 900; font-size: 18px; color: black;">
             ${isV}
