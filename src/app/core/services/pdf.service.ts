@@ -31,10 +31,16 @@ generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
     doc.setLineWidth(0.3);
     doc.line(14, startY + 2, 196, startY + 2);
 
-    ranking.forEach((r: any, i: number) => {
+ranking.forEach((r: any, i: number) => {
       const y = startY + 8 + (i * 9);
 
-      if (i % 2 === 0) {
+      if (i === 0) {
+        doc.setFillColor(255, 215, 0);
+      } else if (i === 1) {
+        doc.setFillColor(200, 230, 200);
+      } else if (i === 2) {
+        doc.setFillColor(173, 216, 230);
+      } else if (i % 2 === 0) {
         doc.setFillColor(245, 245, 245);
       } else {
         doc.setFillColor(255, 255, 255);
@@ -42,7 +48,8 @@ generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
       doc.rect(14, y - 4, 182, 8, 'F');
 
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
       doc.text(`${i + 1}`, 14, y + 1, { align: 'left' });
       doc.text(r.user?.nickname || '-', 22, y + 1, { align: 'left' });
       doc.text(`${r.puntos || 0}`, 85, y + 1, { align: 'center' });
@@ -69,21 +76,56 @@ generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
     doc.setFontSize(10);
     doc.text(`Generado: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
 
-    const tableData = ranking.map((r, i) => [
-      i + 1,
-      r.user.nickname,
-      r.puntos || 0,
-      r.stats?.V || 0,
-      r.stats?.E || 0,
-      r.stats?.L || 0
-    ]);
+    const startY = 35;
 
-    autoTable(doc, {
-      head: [['#', 'Jugador', 'Puntos', 'V', 'E', 'L']],
-      body: tableData,
-      startY: 35,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [25, 135, 84] }
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('#', 14, startY, { align: 'left' });
+    doc.text('Jugador', 22, startY, { align: 'left' });
+    doc.text('Pts', 70, startY, { align: 'center' });
+    doc.text('V', 90, startY, { align: 'center' });
+    doc.text('E', 110, startY, { align: 'center' });
+    doc.text('L', 130, startY, { align: 'center' });
+    doc.text('\u{1F3C6}', 150, startY, { align: 'center' });
+
+    doc.setLineWidth(0.3);
+    doc.line(14, startY + 2, 180, startY + 2);
+
+    const maxPuntos = ranking.length > 0 ? (ranking[0].puntos || 0) : 0;
+    let isWinner = true;
+
+    ranking.forEach((r: any, i: number) => {
+      const y = startY + 8 + (i * 9);
+
+      if (isWinner) {
+        doc.setFillColor(255, 215, 0);
+      } else if (i % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+      } else {
+        doc.setFillColor(255, 255, 255);
+      }
+      doc.rect(14, y - 4, 166, 8, 'F');
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${i + 1}`, 14, y + 1, { align: 'left' });
+      doc.text(r.user?.nickname || '-', 22, y + 1, { align: 'left' });
+      doc.text(`${r.puntos || 0}`, 70, y + 1, { align: 'center' });
+      doc.text(`${r.stats?.V || 0}`, 90, y + 1, { align: 'center' });
+      doc.text(`${r.stats?.E || 0}`, 110, y + 1, { align: 'center' });
+      doc.text(`${r.stats?.L || 0}`, 130, y + 1, { align: 'center' });
+
+      if (isWinner) {
+        doc.text('\u{1F3C6}', 150, y + 1, { align: 'center' });
+      } else {
+        doc.text('', 150, y + 1, { align: 'center' });
+      }
+
+      if ((r.puntos || 0) < maxPuntos) {
+        isWinner = false;
+      }
     });
 
     doc.save(`posiciones-${fixtureName}.pdf`);
