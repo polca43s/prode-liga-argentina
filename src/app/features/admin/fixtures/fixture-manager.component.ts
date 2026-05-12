@@ -109,7 +109,7 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
              </div>
           </div>
 
-          <!-- LISTA GENERAL (Solo si no hay nombre ni estamos creando) -->
+           <!-- LISTA GENERAL (Solo si no hay nombre ni estamos creando) -->
           <div class="fixtures-list" *ngIf="!newFixtureName && !justCreatedFixtureId">
             <div *ngFor="let f of fixtures" class="fixture-item">
               <div class="fixture-info">
@@ -117,8 +117,8 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
                 <span class="match-count">{{ f.partidos?.length || 0 }} partidos</span>
               </div>
               <div class="fixture-actions">
-                 <button (click)="editFixture(f.id)" class="btn-icon">✏️</button>
-                 <!-- Aqui podrias sumar un delete fecha si quieres -->
+                 <button (click)="editFixture(f.id)" class="btn-icon" title="Editar">✏️</button>
+                 <button (click)="deleteFixture(f.id)" class="btn-icon btn-danger" title="Borrar Fecha">🗑️</button>
               </div>
             </div>
           </div>
@@ -149,6 +149,7 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
     .team-select { flex: 1; min-width: 150px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #000; padding: 10px; border-radius: 8px; }
     .team-select option { color: #000; }
     .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; }
+    .btn-icon.btn-danger:hover { color: #f87171; transform: scale(1.1); }
 
     .team-selector-wrapper { position: relative; flex: 1; min-width: 150px; }
     .team-search-input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 10px 12px; border-radius: 8px; }
@@ -331,4 +332,15 @@ export class FixtureManagerComponent implements OnInit {
   }
   
   deleteMatch(matchId: string) { this.fixtureService.deleteMatch(matchId).subscribe(() => this.loadFixtures()); }
+
+  deleteFixture(fixtureId: string) {
+    if (confirm('Estas seguro de borrar esta fecha y todas sus jugadas?')) {
+      this.fixtureService.deleteFixture(fixtureId).subscribe(() => {
+        if (this.justCreatedFixtureId === fixtureId) {
+          this.justCreatedFixtureId = null;
+        }
+        this.loadFixtures();
+      });
+    }
+  }
 }

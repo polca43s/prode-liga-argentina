@@ -28,9 +28,6 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
               <option value="" disabled>Fecha...</option>
               <option *ngFor="let f of fixtures" [value]="f.id">{{ f.nombre }}</option>
             </select>
-            <button *ngIf="selectedFixtureId" (click)="deleteFixture()" class="btn-danger-outline small">
-              🗑️ Borrar Fecha
-            </button>
           </div>
         </header>
 
@@ -227,7 +224,6 @@ export class MatchResultsComponent implements OnInit {
       });
   }
 
-  deleteFixture() { if (confirm('¿Borrar fecha y jugadas?')) this.fixtureService.deleteFixture(this.selectedFixtureId).subscribe(() => { this.selectedFixtureId = ''; this.currentFixture = null; this.onTournamentChange(); }); }
   setResult(match: any, result: string | null) { match.resultado = result; }
   saveAllResults() {
     this.loading = true;
