@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { AppDataSource } from '../index';
 import { Fixture } from '../entities/Fixture';
 import { Prediction } from '../entities/Prediction';
+import { PredictionDetail } from '../entities/PredictionDetail';
 import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -55,9 +56,19 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Re
 router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const predictionRepo = AppDataSource.getRepository(Prediction);
-    const predictions = await predictionRepo.find({ where: { fixture: { id: id as string } } });
+    const predictions = await predictionRepo.find({
+      where: { fixture: { id: id as string } },
+      relations: ['detalles']
+    });
+
+    for (const pred of predictions) {
+      if (pred.detalles && pred.detalles.length > 0) {
+        await AppDataSource.getRepository(PredictionDetail).remove(pred.detalles);
+      }
+    }
+
     if (predictions.length > 0) {
       await predictionRepo.remove(predictions);
     }
