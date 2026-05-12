@@ -21,6 +21,19 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+router.get('/:id/teams', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const tournament = await getTournamentRepository().findOne({
+      where: { id: id as string },
+      relations: ['teams']
+    });
+    res.json(tournament?.teams || []);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/user/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;

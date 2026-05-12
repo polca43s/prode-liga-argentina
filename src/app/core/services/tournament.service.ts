@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Tournament } from '../models/prode.models';
+import { Tournament, Team } from '../models/prode.models';
 import { environment } from '../constants';
 
 @Injectable({
@@ -18,6 +18,10 @@ export class TournamentService {
 
   getTournamentsByUser(userId: string): Observable<Tournament[]> {
     return this.http.get<Tournament[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  getTournamentTeams(tournamentId: string): Observable<Team[]> {
+    return this.http.get<Team[]>(`${this.apiUrl}/${tournamentId}/teams`);
   }
 
   createTournament(tournament: any): Observable<Tournament> {

@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { FixtureService } from '../../../core/services/fixture.service';
 import { TournamentService } from '../../../core/services/tournament.service';
-import { TeamService } from '../../../core/services/team.service';
 import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.models';
 
 @Component({
@@ -141,6 +140,7 @@ export class FixtureManagerComponent implements OnInit {
   newFixtureName = '';
   newMatch = { localId: '', visitanteId: '' };
   justCreatedFixtureId: string | null = null;
+  selectedTournamentTeams: Team[] = [];
 
   constructor(
     private tournamentService: TournamentService,
@@ -154,12 +154,17 @@ export class FixtureManagerComponent implements OnInit {
     });
   }
 
-  onTournamentChange() { this.loadFixtures(); }
+  onTournamentChange() { this.loadFixtures(); this.loadTournamentTeams(); }
 
-  getSelectedTournamentTeams(): Team[] {
-    const tournament = this.tournaments.find(t => t.id === this.selectedTournamentId);
-    return tournament?.teams || [];
+  loadTournamentTeams() {
+    if (!this.selectedTournamentId) return;
+    this.tournamentService.getTournamentTeams(this.selectedTournamentId).subscribe({
+      next: (data: any) => this.selectedTournamentTeams = data,
+      error: (err) => console.error('Error loading tournament teams:', err)
+    });
   }
+
+  getSelectedTournamentTeams(): Team[] { return this.selectedTournamentTeams; }
 
   loadFixtures() { 
     if (!this.selectedTournamentId) return; 
@@ -188,6 +193,7 @@ export class FixtureManagerComponent implements OnInit {
 
   editFixture(id: string) {
     this.justCreatedFixtureId = id;
+    this.loadTournamentTeams();
   }
 
   finishCreation() {
