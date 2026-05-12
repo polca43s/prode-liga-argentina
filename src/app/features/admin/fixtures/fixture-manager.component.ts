@@ -65,19 +65,42 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
                 <div class="add-match-box">
                   <h4>Agregar Partidos</h4>
                   <div class="match-inputs">
-                    <select [(ngModel)]="newMatch.localId" class="team-select">
-                      <option value="" disabled selected>Local</option>
-                      <option *ngFor="let team of getAvailableTeams(getJustCreatedFixture()!)" [value]="team.id">
-                        {{ team.nombre }}
-                      </option>
-                    </select>
+                    <!-- SELECTOR LOCAL -->
+                    <div class="team-selector-wrapper">
+                      <input type="text" class="team-search-input" placeholder="Buscar Local..." [(ngModel)]="localSearch" (focus)="localDropdownOpen = true" (blur)="closeDropdown('local')">
+                      <div class="team-dropdown" *ngIf="localDropdownOpen">
+                        <div *ngFor="let team of getFilteredTeams('local')" class="team-option" (mousedown)="selectTeam('local', team)">
+                          <img [src]="team.escudo" class="dropdown-escudo" *ngIf="team.escudo" [alt]="team.nombre">
+                          <span>{{ team.nombre }}</span>
+                        </div>
+                      </div>
+                      <div class="selected-team-display" *ngIf="newMatch.localId" (click)="newMatch.localId = ''; localSearch = ''">
+                        <span *ngIf="getSelectedTeamById(newMatch.localId) as team">
+                          <img [src]="team.escudo" class="mini-escudo" *ngIf="team.escudo" [alt]="team.nombre">
+                          {{ team.nombre }}
+                        </span>
+                      </div>
+                    </div>
+
                     <span class="vs">VS</span>
-                    <select [(ngModel)]="newMatch.visitanteId" class="team-select">
-                      <option value="" disabled selected>Visitante</option>
-                      <option *ngFor="let team of getAvailableTeams(getJustCreatedFixture()!, newMatch.localId)" [value]="team.id">
-                        {{ team.nombre }}
-                      </option>
-                    </select>
+
+                    <!-- SELECTOR VISITANTE -->
+                    <div class="team-selector-wrapper">
+                      <input type="text" class="team-search-input" placeholder="Buscar Visitante..." [(ngModel)]="visitanteSearch" (focus)="visitanteDropdownOpen = true" (blur)="closeDropdown('visitante')">
+                      <div class="team-dropdown" *ngIf="visitanteDropdownOpen">
+                        <div *ngFor="let team of getFilteredTeams('visitante')" class="team-option" (mousedown)="selectTeam('visitante', team)">
+                          <img [src]="team.escudo" class="dropdown-escudo" *ngIf="team.escudo" [alt]="team.nombre">
+                          <span>{{ team.nombre }}</span>
+                        </div>
+                      </div>
+                      <div class="selected-team-display" *ngIf="newMatch.visitanteId" (click)="newMatch.visitanteId = ''; visitanteSearch = ''">
+                        <span *ngIf="getSelectedTeamById(newMatch.visitanteId) as team">
+                          <img [src]="team.escudo" class="mini-escudo" *ngIf="team.escudo" [alt]="team.nombre">
+                          {{ team.nombre }}
+                        </span>
+                      </div>
+                    </div>
+
                     <button (click)="addMatchToFixture(justCreatedFixtureId)" class="btn-secondary" [disabled]="!newMatch.localId || !newMatch.visitanteId">
                       Añadir
                     </button>
@@ -127,6 +150,18 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
     .team-select option { color: #000; }
     .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; }
 
+    .team-selector-wrapper { position: relative; flex: 1; min-width: 150px; }
+    .team-search-input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 10px 12px; border-radius: 8px; }
+    .team-search-input::placeholder { color: rgba(255,255,255,0.4); }
+    .team-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 8px 20px rgba(0,0,0,0.4); margin-top: 4px; }
+    .team-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+    .team-option:hover { background: rgba(116, 172, 223, 0.15); }
+    .team-option:last-child { border-bottom: none; }
+    .dropdown-escudo { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
+    .selected-team-display { margin-top: 6px; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.5); font-size: 0.8rem; cursor: pointer; }
+    .selected-team-display:hover { color: #f87171; }
+    .selected-team-display span { display: flex; align-items: center; gap: 5px; }
+
     .focused-editing { animation: fadeIn 0.4s ease; }
     .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(116, 172, 223, 0.1); padding: 20px; border-radius: 12px; }
     .fixture-info { display: flex; flex-direction: column; gap: 5px; }
@@ -145,7 +180,8 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
       .new-fixture-form { flex-direction: column; }
       .new-fixture-form input { min-width: unset; }
       .match-inputs { flex-direction: column; }
-      .team-select { min-width: unset; width: 100%; }
+      .team-selector-wrapper { width: 100%; }
+      .team-dropdown { max-height: 180px; }
       .fixtures-list .fixture-item { padding: 15px; flex-direction: column; align-items: flex-start; gap: 10px; }
       .fixture-info h3 { font-size: 1.2rem; }
       .focused-editing .fixture-item { padding: 15px; }
@@ -164,6 +200,10 @@ export class FixtureManagerComponent implements OnInit {
   justCreatedFixtureId: string | null = null;
   selectedTournamentTeams: Team[] = [];
   loadingTeams = false;
+  localSearch = '';
+  visitanteSearch = '';
+  localDropdownOpen = false;
+  visitanteDropdownOpen = false;
 
   constructor(
     private tournamentService: TournamentService,
@@ -231,6 +271,48 @@ export class FixtureManagerComponent implements OnInit {
     return tournamentTeams.filter(t => t.id !== excludeId);
   }
 
+  getFilteredTeams(type: 'local' | 'visitante'): Team[] {
+    const excludeId = type === 'visitante' ? this.newMatch.localId : undefined;
+    const search = type === 'local' ? this.localSearch.toLowerCase() : this.visitanteSearch.toLowerCase();
+    return this.getAvailableTeams(this.getJustCreatedFixture()!, excludeId).filter(t =>
+      t.nombre.toLowerCase().includes(search)
+    );
+  }
+
+  getSelectedTeamById(id: string): Team | undefined {
+    return this.selectedTournamentTeams.find(t => t.id === id);
+  }
+
+  selectTeam(type: 'local' | 'visitante', team: Team) {
+    if (type === 'local') {
+      this.newMatch.localId = team.id;
+      this.localSearch = team.nombre;
+      this.localDropdownOpen = false;
+    } else {
+      this.newMatch.visitanteId = team.id;
+      this.visitanteSearch = team.nombre;
+      this.visitanteDropdownOpen = false;
+    }
+  }
+
+  closeDropdown(type: 'local' | 'visitante') {
+    setTimeout(() => {
+      if (type === 'local') {
+        this.localDropdownOpen = false;
+        if (this.newMatch.localId) {
+          const team = this.getSelectedTeamById(this.newMatch.localId);
+          if (team) this.localSearch = team.nombre;
+        }
+      } else {
+        this.visitanteDropdownOpen = false;
+        if (this.newMatch.visitanteId) {
+          const team = this.getSelectedTeamById(this.newMatch.visitanteId);
+          if (team) this.visitanteSearch = team.nombre;
+        }
+      }
+    }, 200);
+  }
+
   addMatchToFixture(fixtureId: string) {
     const fixture = this.fixtures.find(f => f.id === fixtureId);
     const orden = (fixture?.partidos?.length || 0) + 1;
@@ -240,7 +322,12 @@ export class FixtureManagerComponent implements OnInit {
       visitante: { id: this.newMatch.visitanteId },
       orden
     };
-    this.fixtureService.createMatch(matchData).subscribe(() => { this.newMatch = { localId: '', visitanteId: '' }; this.loadFixtures(); });
+    this.fixtureService.createMatch(matchData).subscribe(() => { 
+      this.newMatch = { localId: '', visitanteId: '' }; 
+      this.localSearch = '';
+      this.visitanteSearch = '';
+      this.loadFixtures(); 
+    });
   }
   
   deleteMatch(matchId: string) { this.fixtureService.deleteMatch(matchId).subscribe(() => this.loadFixtures()); }

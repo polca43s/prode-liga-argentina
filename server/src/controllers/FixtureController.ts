@@ -18,7 +18,7 @@ router.get('/tournament/:tournamentId', authMiddleware, async (req: Request, res
       .leftJoinAndSelect('fixture.partidos', 'partidos')
       .leftJoinAndSelect('partidos.local', 'local')
       .leftJoinAndSelect('partidos.visitante', 'visitante')
-      .where('fixture.tournament_id = :tournamentId', { tournamentId })
+      .where('fixture.tournamentId = :tournamentId', { tournamentId })
       .orderBy('fixture.createdAt', 'ASC')
       .addOrderBy('partidos.orden', 'ASC')
       .getMany();
