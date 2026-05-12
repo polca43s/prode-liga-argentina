@@ -133,8 +133,26 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
     .match-count { font-size: 0.8rem; color: var(--text-muted); }
     .fixtures-list .fixture-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; }
     .focused-editing .fixture-item { padding: 30px; display: block; }
-    
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 600px) {
+      .manager-container { padding: 10px; }
+      .manager-card { max-width: 100%; padding: 15px; }
+      .manager-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+      .tournament-selector select { width: 100%; }
+      .new-fixture-form { flex-direction: column; }
+      .new-fixture-form input { min-width: unset; }
+      .match-inputs { flex-direction: column; }
+      .team-select { min-width: unset; width: 100%; }
+      .fixtures-list .fixture-item { padding: 15px; flex-direction: column; align-items: flex-start; gap: 10px; }
+      .fixture-info h3 { font-size: 1.2rem; }
+      .focused-editing .fixture-item { padding: 15px; }
+      .edit-header { flex-direction: column; gap: 10px; }
+      .match-item { padding: 10px; flex-direction: column; gap: 5px; }
+      .team-vs { flex-wrap: wrap; justify-content: center; }
+    }
   `]
 })
 export class FixtureManagerComponent implements OnInit {

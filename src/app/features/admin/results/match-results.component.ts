@@ -148,22 +148,6 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
     .v-group { position: relative; display: flex; width: 100%; height: 100%; }
     .btn-clear { position: absolute; right: -30px; top: 50%; transform: translateY(-50%); color: var(--danger); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 768px) {
-      .manager-card { padding: 10px; border-radius: 12px; }
-      .manager-header { flex-direction: column; align-items: stretch; text-align: center; gap: 15px; }
-      
-      .grid-header { grid-template-columns: 35px 1fr 35px 1fr 35px; font-size: 0.8rem; }
-      .match-row { grid-template-columns: 35px 1fr 35px 1fr 35px; }
-      
-      .team-container { padding: 2px; gap: 3px; flex-direction: row !important; }
-      .team-name { font-size: 0.65rem; line-height: 1.1; word-wrap: break-word; }
-      .escudo { width: 18px; height: 18px; flex-shrink: 0; }
-      
-      .pred-btn { font-size: 1rem; }
-      .btn-clear { right: -15px; font-size: 0.9rem; }
-    }
-    
     .fixture-status-bar { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); }
     .visibility-toggle { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
     .status-label { font-weight: 700; font-size: 1.1rem; color: #4ade80; }
@@ -176,6 +160,26 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
     .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(18px); }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 600px) {
+      .manager-container { padding: 10px; }
+      .manager-card { padding: 15px; }
+      .manager-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .selectors { flex-direction: column; width: 100%; }
+      .selectors select { width: 100%; }
+      .fixture-status-bar { padding: 15px; }
+      .visibility-toggle { flex-wrap: wrap; }
+      .status-desc { margin-left: 0; margin-top: 5px; }
+      .grid-header { grid-template-columns: 35px 1fr 35px 1fr 35px; font-size: 0.7rem; }
+      .match-row { grid-template-columns: 35px 1fr 35px 1fr 35px; }
+      .team-container { padding: 2px; gap: 2px; flex-direction: row !important; }
+      .team-name { font-size: 0.6rem; line-height: 1.1; word-wrap: break-word; }
+      .escudo { width: 16px; height: 16px; flex-shrink: 0; }
+      .pred-btn { font-size: 0.9rem; }
+      .btn-clear { right: -12px; font-size: 0.8rem; }
+      .v-group { min-height: 50px; }
+    }
   `]
 })
 export class MatchResultsComponent implements OnInit {

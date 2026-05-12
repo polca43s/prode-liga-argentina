@@ -88,22 +88,11 @@ import { AuthService } from '../../../core/services/auth.service';
     .logged-nickname { color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight: 600; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 20px; }
     .btn-logout { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #ff4d4d; padding: 6px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.3s; }
     .btn-logout:hover { background: rgba(220, 53, 69, 0.2); transform: translateY(-2px); }
-    
+
     .badge { background: var(--primary); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
     .admin-header h1 { font-size: 2.8rem; color: #fff; margin: 15px 0 10px; }
     .admin-header p { color: var(--text-muted); font-size: 1.1rem; }
     .admin-actions { display: grid; gap: 15px; }
-
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 600px) {
-      .admin-container { padding: 10px; }
-      .admin-card { padding: 30px 20px; }
-      .admin-header h1 { font-size: 2rem; }
-      .action-card { padding: 15px; }
-      .icon { font-size: 1.5rem; margin-right: 15px; }
-      .content h3 { font-size: 1.1rem; }
-      .footer-stats { flex-direction: column; gap: 20px; text-align: center; }
-    }
 
     .action-card { display: flex; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 16px; text-decoration: none; transition: all 0.3s ease; }
     .action-card:hover { background: rgba(116, 172, 223, 0.1); border-color: var(--primary); transform: translateX(10px); }
@@ -113,7 +102,21 @@ import { AuthService } from '../../../core/services/auth.service';
     .footer-stats { margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 40px; }
     .stat strong { display: block; font-size: 1.5rem; color: var(--primary); }
     .stat span { color: var(--text-muted); font-size: 0.85rem; }
-  `]
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 600px) {
+      .admin-container { padding: 10px; }
+      .admin-card { padding: 20px 15px; }
+      .admin-header h1 { font-size: 1.8rem; }
+      .header-top { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .user-session { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .action-card { padding: 12px; }
+      .action-card:hover { transform: none; }
+      .icon { font-size: 1.5rem; margin-right: 12px; }
+      .content h3 { font-size: 1rem; }
+      .content p { font-size: 0.8rem; }
+      .footer-stats { flex-direction: column; gap: 20px; text-align: center; }
+    }
 })
 export class AdminDashboardComponent implements OnInit {
   userCount = 0;

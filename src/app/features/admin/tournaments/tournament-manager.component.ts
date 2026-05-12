@@ -140,6 +140,20 @@ import { Tournament, Team, User } from '../../../core/models/prode.models';
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     @media (max-width: 800px) { .form-main { grid-template-columns: 1fr; } }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 600px) {
+      .manager-container { padding: 10px; }
+      .manager-card { padding: 20px 15px; }
+      .manager-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+      .tournaments-grid { grid-template-columns: 1fr; }
+      .tournament-item { padding: 15px; }
+      .form-card { padding: 20px 15px; }
+      .form-main { grid-template-columns: 1fr; gap: 20px; }
+      .selection-list { height: 180px; }
+      .form-actions { flex-direction: column; }
+      .form-group input, .form-group textarea, .form-group select { padding: 10px; }
+    }
   `]
 })
 export class TournamentManagerComponent implements OnInit {

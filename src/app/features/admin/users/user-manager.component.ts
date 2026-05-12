@@ -140,6 +140,20 @@ import { User, UserRole } from '../../../core/models/prode.models';
 
     .animate-slide-up { animation: slideUp 0.4s ease-out; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 600px) {
+      .manager-container { padding: 10px; }
+      .manager-card { padding: 20px 15px; }
+      .manager-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+      .users-list { overflow-x: auto; }
+      .admin-table { min-width: 500px; }
+      .admin-table th, .admin-table td { padding: 10px 8px; font-size: 0.8rem; }
+      .form-card { padding: 20px 15px; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-group input, select { padding: 10px; }
+      .form-actions { flex-direction: column; }
+    }
   `]
 })
 export class UserManagerComponent implements OnInit {
