@@ -138,7 +138,7 @@ export class MailService {
       const isE = d.seleccion.includes('E') ? 'X' : '';
       const isV = d.seleccion.includes('V') ? 'X' : '';
 
-      const escudoHtml = (escudo: string) => escudo ? `<img src="${escudo}" style="height: 4px; vertical-align: middle; margin-left: 8px;">` : '';
+      const escudoHtml = (escudo: string) => escudo ? `<img src="${escudo}" style="height: 15px; width: 15px; object-fit: contain; vertical-align: middle; margin-left: 8px;">` : '';
 
       matchesHtml += `
         <tr style="background-color: ${bgColor}; font-size: 15px; font-weight: 600; color: #333;">

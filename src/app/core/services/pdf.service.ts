@@ -9,7 +9,7 @@ export class PdfService {
 
   generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(18);
     doc.text(`Tabla General - ${tournamentName}`, 14, 20);
     doc.setFontSize(10);
@@ -38,7 +38,7 @@ export class PdfService {
 
   generateFixtureRankingPdf(ranking: any[], fixtureName: string): void {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(18);
     doc.text(`Posiciones - ${fixtureName}`, 14, 20);
     doc.setFontSize(10);
@@ -66,42 +66,46 @@ export class PdfService {
 
   generatePredictionPdf(user: any, fixture: any, detalles: any[], fecha: string): void {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(16);
     doc.text('Comprobante de Jugada', 14, 20);
-    
+
     doc.setFontSize(11);
     doc.text(`Fecha: ${fixture?.nombre || fecha}`, 14, 32);
     doc.text(`Jugador: ${user?.nickname}`, 14, 40);
     doc.text(`Fecha de carga: ${new Date().toLocaleString('es-AR')}`, 14, 48);
 
-    // Armar tabla con formato similar al mail: L, Local, E, Visitante, V
-    const tableData = detalles.map((d: any) => {
-      const local = d.match?.local?.nombre || 'Local';
-      const visit = d.match?.visitante?.nombre || 'Visitante';
-      const sel = d.seleccion || '';
-      return [
-        sel.includes('L') ? 'X' : '',
-        local,
-        sel.includes('E') ? 'X' : '',
-        visit,
-        sel.includes('V') ? 'X' : ''
-      ];
-    });
+    const startY = 58;
 
-    autoTable(doc, {
-      head: [['L', 'LOCAL', 'E', 'VISITANTE', 'V']],
-      body: tableData,
-      startY: 58,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [25, 135, 84] },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 15 },
-        1: { halign: 'right' },
-        2: { halign: 'center', cellWidth: 15 },
-        3: { halign: 'left' },
-        4: { halign: 'center', cellWidth: 15 }
+    detalles.forEach((d: any, index: number) => {
+      const y = startY + (index * 12);
+
+      doc.setFillColor(240, 240, 240);
+      if (index % 2 === 1) doc.setFillColor(255, 255, 255);
+      doc.rect(14, y - 4, 182, 10, 'F');
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+
+      doc.text(d.seleccion.includes('L') ? 'X' : '', 20, y + 2, { align: 'center' });
+
+      const localImg = d.match?.local?.escudo;
+      if (localImg) {
+        try { doc.addImage(localImg, 'PNG', 30, y - 3, 8, 8); } catch {}
       }
+
+      doc.text(d.match?.local?.nombre || 'Local', 70, y + 2, { align: 'right' });
+
+      doc.text(d.seleccion.includes('E') ? 'X' : '', 110, y + 2, { align: 'center' });
+
+      const visitImg = d.match?.visitante?.escudo;
+      if (visitImg) {
+        try { doc.addImage(visitImg, 'PNG', 120, y - 3, 8, 8); } catch {}
+      }
+
+      doc.text(d.match?.visitante?.nombre || 'Visitante', 160, y + 2, { align: 'left' });
+
+      doc.text(d.seleccion.includes('V') ? 'X' : '', 190, y + 2, { align: 'center' });
     });
 
     doc.save(`mi-jugada-${fixture?.nombre || fecha}.pdf`);
