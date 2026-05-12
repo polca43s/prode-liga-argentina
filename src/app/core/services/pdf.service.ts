@@ -7,7 +7,7 @@ import autoTable from 'jspdf-autotable';
 })
 export class PdfService {
 
-  generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
+generateGeneralRankingPdf(ranking: any[], tournamentName: string): void {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
@@ -15,22 +15,47 @@ export class PdfService {
     doc.setFontSize(10);
     doc.text(`Generado: ${new Date().toLocaleDateString('es-AR')}`, 14, 28);
 
-    const tableData = ranking.map((r, i) => [
-      i + 1,
-      r.user.nickname,
-      r.puntos || 0,
-      r.fechasGanadas || 0,
-      r.visita || 0,
-      r.empate || 0,
-      r.local || 0
-    ]);
+    const startY = 35;
 
-    autoTable(doc, {
-      head: [['#', 'Jugador', 'Puntos', 'FG', 'V', 'E', 'L']],
-      body: tableData,
-      startY: 35,
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [25, 135, 84] }
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('#', 14, startY, { align: 'left' });
+    doc.text('Jugador', 22, startY, { align: 'left' });
+    doc.text('Pts', 85, startY, { align: 'center' });
+    doc.text('FG', 105, startY, { align: 'center' });
+    doc.text('V', 125, startY, { align: 'center' });
+    doc.text('E', 145, startY, { align: 'center' });
+    doc.text('L', 165, startY, { align: 'center' });
+
+    doc.setLineWidth(0.3);
+    doc.line(14, startY + 2, 196, startY + 2);
+
+    ranking.forEach((r: any, i: number) => {
+      const y = startY + 8 + (i * 9);
+
+      if (i % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+      } else {
+        doc.setFillColor(255, 255, 255);
+      }
+      doc.rect(14, y - 4, 182, 8, 'F');
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${i + 1}`, 14, y + 1, { align: 'left' });
+      doc.text(r.user?.nickname || '-', 22, y + 1, { align: 'left' });
+      doc.text(`${r.puntos || 0}`, 85, y + 1, { align: 'center' });
+
+      if ((r.fechasGanadas || 0) > 0) {
+        doc.text(`${r.fechasGanadas} \u{1F3C6}`, 105, y + 1, { align: 'center' });
+      } else {
+        doc.text('0', 105, y + 1, { align: 'center' });
+      }
+
+      doc.text(`${r.visita || 0}`, 125, y + 1, { align: 'center' });
+      doc.text(`${r.empate || 0}`, 145, y + 1, { align: 'center' });
+      doc.text(`${r.local || 0}`, 165, y + 1, { align: 'center' });
     });
 
     doc.save(`tabla-general-${tournamentName}.pdf`);
