@@ -22,6 +22,6 @@ export class Match {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Fixture, fixture => fixture.partidos)
+  @ManyToOne(() => Fixture, fixture => fixture.partidos, { onDelete: 'CASCADE' })
   fixture: Fixture;
 }

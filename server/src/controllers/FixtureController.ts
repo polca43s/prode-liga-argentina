@@ -3,6 +3,7 @@ import { AppDataSource } from '../index';
 import { Fixture } from '../entities/Fixture';
 import { Prediction } from '../entities/Prediction';
 import { PredictionDetail } from '../entities/PredictionDetail';
+import { Match } from '../entities/Match';
 import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -56,6 +57,12 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Re
 router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    const matchRepo = AppDataSource.getRepository(Match);
+    const matches = await matchRepo.find({ where: { fixture: { id: id as string } } });
+    if (matches.length > 0) {
+      await matchRepo.remove(matches);
+    }
 
     const predictionRepo = AppDataSource.getRepository(Prediction);
     const predictions = await predictionRepo.find({
