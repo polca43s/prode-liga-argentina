@@ -95,6 +95,9 @@ router.get('/my/:fixtureId', authMiddleware, async (req: any, res: Response) => 
       where: { user: { id: userId as string }, fixture: { id: fixtureId as string } },
       relations: ['detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
     });
+    if (prediction && prediction.detalles) {
+      prediction.detalles.sort((a: any, b: any) => (a.match?.orden || 0) - (b.match?.orden || 0));
+    }
     res.json(prediction);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

@@ -408,7 +408,11 @@ export class PredictionSubmitComponent implements OnInit {
   }
 
   onFixtureChange() {
-    this.currentFixture = this.fixtures.find(f => f.id === this.selectedFixtureId);
+    const fixture = this.fixtures.find(f => f.id === this.selectedFixtureId);
+    if (fixture && fixture.partidos) {
+      fixture.partidos.sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0));
+    }
+    this.currentFixture = fixture;
     this.loadMyPrediction();
   }
 
@@ -419,6 +423,7 @@ export class PredictionSubmitComponent implements OnInit {
 
     this.predictionService.getMyPrediction(this.selectedFixtureId).subscribe((data: any) => {
       if (data && data.detalles) {
+        data.detalles.sort((a: any, b: any) => (a.match?.orden || 0) - (b.match?.orden || 0));
         this.myPrediction = data;
         this.mySelections = data.detalles.map((d: any) => ({
           matchId: d.match.id,

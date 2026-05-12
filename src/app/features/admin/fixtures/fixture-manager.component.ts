@@ -27,9 +27,11 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
         </header>
 
         <div *ngIf="selectedTournamentId" class="fixture-section">
-          <div *ngIf="getSelectedTournamentTeams().length === 0" class="warn-box">
+          <div *ngIf="getSelectedTournamentTeams().length === 0 && !loadingTeams" class="warn-box">
             ⚠️ Este torneo no tiene equipos asignados. Ve a "Gestión de Torneos" para agregarlos.
           </div>
+
+          <div *ngIf="loadingTeams" class="warn-box">Cargando equipos...</div>
 
           <!-- FORMULARIO NUEVA FECHA -->
           <div class="new-fixture-form" *ngIf="getSelectedTournamentTeams().length > 0 && !justCreatedFixtureId">
@@ -43,8 +45,10 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
                 <h2>Editando: {{ getJustCreatedFixture()?.nombre }}</h2>
                 <button (click)="finishCreation()" class="btn-primary">Finalizar Armado ✅</button>
              </div>
-             
-             <div class="fixture-item">
+
+             <div *ngIf="getSelectedTournamentTeams().length === 0 && loadingTeams" class="warn-box">Cargando equipos...</div>
+
+             <div class="fixture-item" *ngIf="getSelectedTournamentTeams().length > 0">
                 <div class="matches-list">
                   <div *ngFor="let m of getJustCreatedFixture()?.partidos" class="match-item">
                     <div class="team-vs">
@@ -141,6 +145,7 @@ export class FixtureManagerComponent implements OnInit {
   newMatch = { localId: '', visitanteId: '' };
   justCreatedFixtureId: string | null = null;
   selectedTournamentTeams: Team[] = [];
+  loadingTeams = false;
 
   constructor(
     private tournamentService: TournamentService,
@@ -158,9 +163,10 @@ export class FixtureManagerComponent implements OnInit {
 
   loadTournamentTeams() {
     if (!this.selectedTournamentId) return;
+    this.loadingTeams = true;
     this.tournamentService.getTournamentTeams(this.selectedTournamentId).subscribe({
-      next: (data: any) => this.selectedTournamentTeams = data,
-      error: (err) => console.error('Error loading tournament teams:', err)
+      next: (data: any) => { this.selectedTournamentTeams = data; this.loadingTeams = false; },
+      error: (err) => { console.error('Error loading tournament teams:', err); this.loadingTeams = false; }
     });
   }
 
@@ -183,7 +189,8 @@ export class FixtureManagerComponent implements OnInit {
     this.fixtureService.createFixture(fixtureData).subscribe((res: any) => { 
       this.newFixtureName = ''; 
       this.justCreatedFixtureId = res.id;
-      this.loadFixtures(); 
+      this.loadFixtures();
+      this.loadTournamentTeams(); 
     });
   }
 
@@ -203,16 +210,7 @@ export class FixtureManagerComponent implements OnInit {
 
   getAvailableTeams(fixture: Fixture, excludeId?: string): Team[] {
     const tournamentTeams = this.getSelectedTournamentTeams();
-    const usedTeamIds = new Set<string>();
-    
-    // Filtrar equipos ya usados en este fixture (para que no se repitan dentro del mismo fixture)
-    fixture.partidos?.forEach((m: any) => { 
-      if (m.local) usedTeamIds.add(m.local.id); 
-      if (m.visitante) usedTeamIds.add(m.visitante.id); 
-    });
-
-    // Mostrar todos los equipos del tournament excepto los ya usados en este fixture y el excluido
-    return tournamentTeams.filter(t => !usedTeamIds.has(t.id) && t.id !== excludeId);
+    return tournamentTeams.filter(t => t.id !== excludeId);
   }
 
   addMatchToFixture(fixtureId: string) {

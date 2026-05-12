@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Tournament } from './Tournament';
 
 @Entity('teams')
 export class Team {
@@ -11,7 +12,10 @@ export class Team {
   @Column({ nullable: true })
   ciudad: string;
 
-  @Column({ name: 'escudo', nullable: true }) // Explicitamos el nombre de la columna en la DB
-  escudo: string; 
+  @Column({ name: 'escudo', nullable: true })
+  escudo: string;
+
+  @ManyToMany(() => Tournament, tournament => tournament.teams)
+  tournaments: Tournament[];
 }
 // Última actualización: 2026-05-03 - Forzando reinicio de Nodemon
