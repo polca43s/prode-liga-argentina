@@ -203,6 +203,12 @@ export class MatchResultsComponent implements OnInit {
       .subscribe(() => {
         const msg = this.currentFixture.seeAll ? 'Fecha CERRADA: Ya nadie puede editar.' : 'Fecha POR JUGAR: Usuarios pueden editar.';
         console.log(msg);
+        if (this.currentFixture.seeAll && this.currentFixture.countThis) {
+          this.predictionService.recalculateRanking(this.selectedTournamentId).subscribe({
+            next: () => console.log('Ranking recalculado al cerrar fecha'),
+            error: () => console.error('Error recalculando ranking')
+          });
+        }
       });
   }
 
@@ -213,8 +219,13 @@ export class MatchResultsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.loading = false;
-          const msg = this.currentFixture.countThis ? '✓ Esta fecha ahora CUENTA en el ranking.' : '✗ Esta fecha ya NO cuenta en el ranking.';
-          alert(msg);
+          this.predictionService.recalculateRanking(this.selectedTournamentId).subscribe({
+            next: () => {
+              const msg = this.currentFixture.countThis ? '✓ Fecha cuenta en el ranking. Puntos recalculados.' : '✗ Fecha no cuenta. Puntos recalculados.';
+              alert(msg);
+            },
+            error: () => alert('Error al recalcular ranking.')
+          });
         },
         error: () => {
           this.loading = false;

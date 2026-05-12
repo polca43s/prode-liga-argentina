@@ -126,8 +126,8 @@ router.get('/search', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Fecha no encontrada' });
     }
 
-    // Verificar que la fecha esté cerrada Y cuente para el ranking
-    if (!fixture.seeAll || !fixture.countThis) {
+    // Verificar que la fecha esté cerrada
+    if (!fixture.seeAll) {
       return res.status(403).json({ message: 'Aún no puedes ver las jugadas de los demás.' });
     }
 
