@@ -32,7 +32,8 @@ const app = express();
 app.use(cors({
   origin: [
     "https://polca43s.github.io",
-    "http://localhost:4200"
+    "http://localhost:4200",
+    "https://prode-alberti.uk"
   ]
 }));
 app.use(express.json());
