@@ -45,7 +45,7 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
             {{ currentFixture.seeAll ? 'Los usuarios ya no pueden editar sus jugadas.' : 'Los usuarios aún pueden editar sus jugadas.' }}
           </p>
 
-          <div class="visibility-toggle" style="margin-top: 15px;">
+<div class="visibility-toggle" style="margin-top: 15px;">
             <label class="switch">
               <input type="checkbox" [checked]="currentFixture.countThis" (change)="toggleCountThis()">
               <span class="slider round"></span>
@@ -54,6 +54,23 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
               {{ currentFixture.countThis ? '✅ Contar Fecha' : '⏳ No cuenta' }}
             </span>
           </div>
+          <p class="status-desc">
+            {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Activar para que cuenta en el ranking.' }}
+          </p>
+
+          <div class="visibility-toggle" style="margin-top: 15px;">
+            <label class="switch">
+              <input type="checkbox" [checked]="currentFixture.notifyUsers" (change)="toggleNotifyUsers()">
+              <span class="slider round"></span>
+            </label>
+            <span class="status-label" [class.locked]="currentFixture.notifyUsers">
+              {{ currentFixture.notifyUsers ? '🔔 Notificación Enviada' : '🔕 Sin Notificar' }}
+            </span>
+          </div>
+          <p class="status-desc">
+            {{ currentFixture.notifyUsers ? 'Se envió un email a todos los usuarios del torneo.' : 'Activar para notificar a los usuarios que hay una nueva jornada.' }}
+          </p>
+        </div>
           <p class="status-desc">
             {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Activar para que cuente en el ranking.' }}
           </p>
@@ -232,6 +249,20 @@ export class MatchResultsComponent implements OnInit {
           this.currentFixture.countThis = !this.currentFixture.countThis;
           alert('Error al guardar. Verifica que la columna exista en la base de datos.');
         }
+      });
+  }
+
+  toggleNotifyUsers() {
+    this.currentFixture.notifyUsers = !this.currentFixture.notifyUsers;
+    this.fixtureService.updateFixture(this.currentFixture.id, { notifyUsers: this.currentFixture.notifyUsers })
+      .subscribe({
+        next: () => {
+          const msg = this.currentFixture.notifyUsers 
+            ? '🔔 Notificación enviada a todos los usuarios del torneo.' 
+            : '🔕 Notificación desactivada.';
+          alert(msg);
+        },
+        error: () => alert('Error al enviar notificación.')
       });
   }
 
