@@ -60,12 +60,16 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Re
 
     if (isNewNotify && updated) {
       const tournamentRepo = AppDataSource.getRepository(Tournament);
-      const tournament = await tournamentRepo.findOne({
-        where: { id: updated.tournamentId },
-        relations: ['users']
+      const fixtureWithTournament = await getFixtureRepository().findOne({
+        where: { id: updated.id },
+        relations: ['tournament']
       });
+      const tournament = fixtureWithTournament?.tournament ? await tournamentRepo.findOne({
+        where: { id: fixtureWithTournament.tournament.id },
+        relations: ['users']
+      }) : null;
 
-      if (tournament && tournament.users && tournament.users.length > 0) {
+      if (tournament) {
         console.log(`Enviando notificaciones a ${tournament.users.length} usuarios...`);
         for (const user of tournament.users) {
           try {
