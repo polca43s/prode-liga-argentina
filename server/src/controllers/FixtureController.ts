@@ -4,10 +4,14 @@ import { Fixture } from '../entities/Fixture';
 import { Prediction } from '../entities/Prediction';
 import { PredictionDetail } from '../entities/PredictionDetail';
 import { Match } from '../entities/Match';
+import { Tournament } from '../entities/Tournament';
+import { User } from '../entities/User';
 import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
+import { MailService } from '../services/MailService';
 
 const router = Router();
 const getFixtureRepository = () => AppDataSource.getRepository(Fixture);
+const mailService = new MailService();
 
 // Rutas protegidas - cualquier usuario autenticado
 router.get('/tournament/:tournamentId', authMiddleware, async (req: Request, res: Response) => {
@@ -46,8 +50,34 @@ router.post('/', authMiddleware, adminMiddleware, async (req: Request, res: Resp
 router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await getFixtureRepository().update(id as string, req.body);
+    const body = req.body;
+
+    const currentFixture = await getFixtureRepository().findOneBy({ id: id as string });
+    const isNewNotify = body.notifyUsers === true && currentFixture?.notifyUsers !== true;
+
+    await getFixtureRepository().update(id as string, body);
     const updated = await getFixtureRepository().findOneBy({ id: id as string });
+
+    if (isNewNotify && updated) {
+      const tournamentRepo = AppDataSource.getRepository(Tournament);
+      const tournament = await tournamentRepo.findOne({
+        where: { id: updated.tournamentId },
+        relations: ['users']
+      });
+
+      if (tournament && tournament.users && tournament.users.length > 0) {
+        console.log(`Enviando notificaciones a ${tournament.users.length} usuarios...`);
+        for (const user of tournament.users) {
+          try {
+            await mailService.sendNewFixtureNotification(user, updated.nombre, tournament.nombre);
+          } catch (e) {
+            console.error(`Error enviando a ${user.mail}:`, e);
+          }
+        }
+        console.log('Notificaciones enviadas');
+      }
+    }
+
     res.json(updated);
   } catch (error: any) {
     res.status(400).json({ message: error.message });

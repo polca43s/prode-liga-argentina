@@ -16,6 +16,9 @@ export class Fixture {
   @Column({ default: false })
   countThis: boolean;
 
+  @Column({ default: false })
+  notifyUsers: boolean;
+
   @ManyToOne(() => Tournament)
   tournament: Tournament;
 

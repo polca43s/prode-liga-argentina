@@ -171,6 +171,23 @@ export class MailService {
     await sendEmail(user.mail, `Comprobante de Jugada - ${fixture.nombre}`, html);
   }
 
+  async sendNewFixtureNotification(user: any, fixtureName: string, tournamentName: string) {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+        <h2 style="color: #74ACDF; text-align: center;">Nueva Jugada Disponible</h2>
+        <p>Hola <strong>${user.nombre}</strong>,</p>
+        <p>Tienes una nueva jugada por llevar adelante: <strong>${fixtureName}</strong> de tu <strong>${tournamentName}</strong></p>
+        <p style="margin-top: 30px;">
+          <a href="https://www.prode-alberti.uk" target="_blank" style="background-color: #74ACDF; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Ir a la app</a>
+        </p>
+        <hr>
+        <p style="font-size: 0.75em; color: #aaa; text-align: center;">Este es un mensaje automático, por favor no respondas a este correo.</p>
+      </div>
+    `;
+
+    await sendEmail(user.mail, 'Nueva Jugada', html);
+  }
+
   async sendPasswordResetEmail(user: any, token: string) {
     const frontendUrl = process.env.FRONTEND_URL || 'https://polca43s.github.io/prode-liga-argentina';
     const resetLink = `${frontendUrl}/#/reset-password?token=${token}`;

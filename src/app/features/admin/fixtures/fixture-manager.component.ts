@@ -115,6 +115,10 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
               <div class="fixture-info">
                 <h3>{{ f.nombre }}</h3>
                 <span class="match-count">{{ f.partidos?.length || 0 }} partidos</span>
+                <label class="notify-toggle">
+                  <input type="checkbox" [(ngModel)]="f.notifyUsers" (change)="toggleNotifyUsers(f)">
+                  <span>🔔 Notificar a usuarios</span>
+                </label>
               </div>
               <div class="fixture-actions">
                  <button (click)="editFixture(f.id)" class="btn-icon" title="Editar">✏️</button>
@@ -162,6 +166,8 @@ import { Tournament, Team, Fixture, Match } from '../../../core/models/prode.mod
     .selected-team-display { margin-top: 6px; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.5); font-size: 0.8rem; cursor: pointer; }
     .selected-team-display:hover { color: #f87171; }
     .selected-team-display span { display: flex; align-items: center; gap: 5px; }
+    .notify-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; font-size: 0.85rem; color: #74ACDF; }
+    .notify-toggle input { width: 18px; height: 18px; cursor: pointer; }
 
     .focused-editing { animation: fadeIn 0.4s ease; }
     .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(116, 172, 223, 0.1); padding: 20px; border-radius: 12px; }
@@ -339,6 +345,13 @@ export class FixtureManagerComponent implements OnInit {
   }
   
   deleteMatch(matchId: string) { this.fixtureService.deleteMatch(matchId).subscribe(() => this.loadFixtures()); }
+
+  toggleNotifyUsers(fixture: any) {
+    this.fixtureService.updateFixture(fixture.id, { notifyUsers: fixture.notifyUsers }).subscribe({
+      next: () => console.log('Notificación enviada a usuarios'),
+      error: (err) => console.error('Error al notificar:', err)
+    });
+  }
 
   deleteFixture(fixtureId: string) {
     if (confirm('Estas seguro de borrar esta fecha y todas sus jugadas?')) {
