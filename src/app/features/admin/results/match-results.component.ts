@@ -70,11 +70,7 @@ import { Tournament, Fixture, Match } from '../../../core/models/prode.models';
           <p class="status-desc">
             {{ currentFixture.notifyUsers ? 'Se envió un email a todos los usuarios del torneo.' : 'Activar para notificar a los usuarios que hay una nueva jornada.' }}
           </p>
-        </div>
-<p class="status-desc">
-            {{ currentFixture.countThis ? 'Las predicciones de esta fecha cuentan para la tabla general.' : 'Activar para que cuenta en el ranking.' }}
-          </p>
-        </div>
+</div>
 
         <div *ngIf="currentFixture" class="results-table">
           <div class="match-list">
