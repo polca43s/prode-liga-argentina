@@ -116,18 +116,20 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
     const fixtureIds = fixtures.map(f => f.id);
 
     if (fixtureIds.length > 0) {
-      // Eliminar prediction_details primero (por cascade no está configurado)
+      const placeholders = fixtureIds.map((_, i) => `$${i + 1}`).join(', ');
+      
+      // Eliminar prediction_details primero
       await queryRunner.query(
         `DELETE FROM prediction_details WHERE "predictionId" IN (
-          SELECT id FROM predictions WHERE "fixtureId" IN ($1)
+          SELECT id FROM predictions WHERE "fixtureId" IN (${placeholders})
         )`,
-        [fixtureIds]
+        fixtureIds
       );
 
       // Eliminar predictions
       await queryRunner.query(
-        `DELETE FROM predictions WHERE "fixtureId" IN ($1)`,
-        [fixtureIds]
+        `DELETE FROM predictions WHERE "fixtureId" IN (${placeholders})`,
+        fixtureIds
       );
     }
 
