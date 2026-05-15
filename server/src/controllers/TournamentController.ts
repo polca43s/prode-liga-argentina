@@ -105,23 +105,24 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
     
     await queryRunner.startTransaction();
 
+    // Obtener todos los fixtures del torneo
     const fixtures = await queryRunner.manager
       .getRepository(Fixture)
       .createQueryBuilder('fixture')
       .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
       .getMany();
 
-    const fixtureIds = fixtures.map(f => f.id);
-
-    if (fixtureIds.length > 0) {
+    // Eliminar predictions de cada fixture usando la relación correcta
+    for (const fixture of fixtures) {
       await queryRunner.manager
         .getRepository(Prediction)
         .createQueryBuilder('prediction')
         .delete()
-        .where('prediction.fixtureId IN (:...fixtureIds)', { fixtureIds })
+        .where('prediction.fixture = :fixtureId', { fixtureId: fixture.id })
         .execute();
     }
 
+    // Eliminar fixtures
     await queryRunner.manager
       .getRepository(Fixture)
       .createQueryBuilder('fixture')
@@ -129,6 +130,7 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
       .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
       .execute();
 
+    // Eliminar torneo
     await queryRunner.manager
       .getRepository(Tournament)
       .createQueryBuilder('tournament')
