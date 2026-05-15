@@ -109,17 +109,26 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
     const fixtures = await queryRunner.manager
       .getRepository(Fixture)
       .createQueryBuilder('fixture')
+      .select(['fixture.id'])
       .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
       .getMany();
 
-    // Eliminar predictions de cada fixture usando la relación correcta
-    for (const fixture of fixtures) {
-      await queryRunner.manager
-        .getRepository(Prediction)
-        .createQueryBuilder('prediction')
-        .delete()
-        .where('prediction.fixture = :fixtureId', { fixtureId: fixture.id })
-        .execute();
+    const fixtureIds = fixtures.map(f => f.id);
+
+    if (fixtureIds.length > 0) {
+      // Eliminar prediction_details primero (por cascade no está configurado)
+      await queryRunner.query(
+        `DELETE FROM prediction_details WHERE prediction_id IN (
+          SELECT id FROM predictions WHERE "fixtureId" IN ($1)
+        )`,
+        [fixtureIds]
+      );
+
+      // Eliminar predictions
+      await queryRunner.query(
+        `DELETE FROM predictions WHERE "fixtureId" IN ($1)`,
+        [fixtureIds]
+      );
     }
 
     // Eliminar fixtures
