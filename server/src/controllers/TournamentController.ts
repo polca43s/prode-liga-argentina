@@ -131,23 +131,25 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
         `DELETE FROM predictions WHERE "fixtureId" IN (${placeholders})`,
         fixtureIds
       );
+
+      // Eliminar fixtures
+      await queryRunner.query(
+        `DELETE FROM fixtures WHERE "tournamentId" = $1`,
+        [id]
+      );
+    } else {
+      // Eliminar fixtures también si no hay predictions
+      await queryRunner.query(
+        `DELETE FROM fixtures WHERE "tournamentId" = $1`,
+        [id]
+      );
     }
 
-    // Eliminar fixtures
-    await queryRunner.manager
-      .getRepository(Fixture)
-      .createQueryBuilder('fixture')
-      .delete()
-      .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
-      .execute();
-
     // Eliminar torneo
-    await queryRunner.manager
-      .getRepository(Tournament)
-      .createQueryBuilder('tournament')
-      .delete()
-      .where('tournament.id = :id', { id })
-      .execute();
+    await queryRunner.query(
+      `DELETE FROM tournaments WHERE id = $1`,
+      [id]
+    );
 
     await queryRunner.commitTransaction();
     res.json({ message: 'Torneo eliminado correctamente' });
