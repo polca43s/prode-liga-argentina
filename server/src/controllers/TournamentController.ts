@@ -1,10 +1,14 @@
 import { Request, Response, Router } from 'express';
 import { AppDataSource } from '../index';
 import { Tournament } from '../entities/Tournament';
+import { Fixture } from '../entities/Fixture';
+import { Prediction } from '../entities/Prediction';
 import { authMiddleware, adminMiddleware } from '../middlewares/authMiddleware';
 
 const router = Router();
 const getTournamentRepository = () => AppDataSource.getRepository(Tournament);
+const getFixtureRepository = () => AppDataSource.getRepository(Fixture);
+const getPredictionRepository = () => AppDataSource.getRepository(Prediction);
 
 // Rutas protegidas - cualquier usuario autenticado
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
@@ -93,12 +97,53 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Re
 });
 
 router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+  
   try {
     const { id } = req.params;
-    await getTournamentRepository().delete(id);
+    
+    await queryRunner.startTransaction();
+
+    const fixtures = await queryRunner.manager
+      .getRepository(Fixture)
+      .createQueryBuilder('fixture')
+      .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
+      .getMany();
+
+    const fixtureIds = fixtures.map(f => f.id);
+
+    if (fixtureIds.length > 0) {
+      await queryRunner.manager
+        .getRepository(Prediction)
+        .createQueryBuilder('prediction')
+        .delete()
+        .where('prediction.fixtureId IN (:...fixtureIds)', { fixtureIds })
+        .execute();
+    }
+
+    await queryRunner.manager
+      .getRepository(Fixture)
+      .createQueryBuilder('fixture')
+      .delete()
+      .where('fixture.tournamentId = :tournamentId', { tournamentId: id })
+      .execute();
+
+    await queryRunner.manager
+      .getRepository(Tournament)
+      .createQueryBuilder('tournament')
+      .delete()
+      .where('tournament.id = :id', { id })
+      .execute();
+
+    await queryRunner.commitTransaction();
     res.json({ message: 'Torneo eliminado correctamente' });
   } catch (error: any) {
+    await queryRunner.rollbackTransaction();
+    console.error('Error al eliminar torneo:', error);
     res.status(500).json({ message: error.message });
+  } finally {
+    await queryRunner.release();
   }
 });
 
