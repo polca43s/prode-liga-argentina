@@ -118,7 +118,7 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
     if (fixtureIds.length > 0) {
       // Eliminar prediction_details primero (por cascade no está configurado)
       await queryRunner.query(
-        `DELETE FROM prediction_details WHERE prediction_id IN (
+        `DELETE FROM prediction_details WHERE "predictionId" IN (
           SELECT id FROM predictions WHERE "fixtureId" IN ($1)
         )`,
         [fixtureIds]
