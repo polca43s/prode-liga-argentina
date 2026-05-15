@@ -145,6 +145,12 @@ router.delete('/:id', authMiddleware, adminMiddleware, async (req: Request, res:
       );
     }
 
+    // Eliminar standings del tournament
+    await queryRunner.query(
+      `DELETE FROM standings WHERE "tournamentId" = $1`,
+      [id]
+    );
+
     // Eliminar torneo
     await queryRunner.query(
       `DELETE FROM tournaments WHERE id = $1`,
