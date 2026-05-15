@@ -23,7 +23,7 @@ const searchCache = new Map<string, { data: any, expires: number }>();
 // Guardar o Actualizar Jugada (Protegido)
 router.post('/', authMiddleware, async (req: any, res: Response) => {
   try {
-    const { fixtureId, detalles } = req.body;
+    const { fixtureId, detalles, sendEmail } = req.body;
     const userId = req.user.id; // Usamos el ID del TOKEN, no del body
 
     // Verificar si la jugada está bloqueada (seeAll === true)
@@ -63,21 +63,22 @@ router.post('/', authMiddleware, async (req: any, res: Response) => {
 
     await getDetailRepository().save(newDetails);
 
-    // Enviar comprobante por email en segundo plano (asíncrono para no demorar la respuesta)
-    getPredictionRepository().findOne({
-      where: { id: prediction.id },
-      relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
-    }).then((fullPrediction: any) => {
-      if (fullPrediction && fullPrediction.detalles) {
-        // Ordenar detalles por el campo 'orden' que define el admin
-        fullPrediction.detalles.sort((a: any, b: any) => {
-          const ordenA = a.match?.orden ?? 0;
-          const ordenB = b.match?.orden ?? 0;
-          return ordenA - ordenB;
-        });
-        mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
-      }
-    }).catch(err => console.error("Error enviando comprobante de jugada:", err));
+    // Enviar comprobante por email si el usuario lo solicitó
+    if (sendEmail) {
+      getPredictionRepository().findOne({
+        where: { id: prediction.id },
+        relations: ['user', 'fixture', 'detalles', 'detalles.match', 'detalles.match.local', 'detalles.match.visitante']
+      }).then((fullPrediction: any) => {
+        if (fullPrediction && fullPrediction.detalles) {
+          fullPrediction.detalles.sort((a: any, b: any) => {
+            const ordenA = a.match?.orden ?? 0;
+            const ordenB = b.match?.orden ?? 0;
+            return ordenA - ordenB;
+          });
+          mailService.sendPredictionConfirmation(fullPrediction.user, fullPrediction.fixture, fullPrediction.detalles);
+        }
+      }).catch(err => console.error("Error enviando comprobante de jugada:", err));
+    }
 
     res.status(201).json({ message: 'Jugada guardada con éxito' });
   } catch (error: any) {

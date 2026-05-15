@@ -490,14 +490,21 @@ export class PredictionSubmitComponent implements OnInit {
   }
 
   savePrediction() {
+    const sendEmail = confirm('¿Querés que te enviemos un email de confirmación de tujugada?');
+    
     const data = {
       fixtureId: this.selectedFixtureId,
-      detalles: this.mySelections
+      detalles: this.mySelections,
+      sendEmail: sendEmail
     };
     this.loading = true;
     this.predictionService.savePrediction(data).subscribe({
       next: (data: any) => {
-        alert('Jugada guardada correctamente');
+        if (sendEmail) {
+          alert('Jugada guardada correctamente. Te hemos enviado un email de confirmación.');
+        } else {
+          alert('Jugada guardada correctamente');
+        }
         this.loading = false;
       },
       error: (err: any) => {
